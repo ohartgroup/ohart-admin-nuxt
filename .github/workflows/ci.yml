@@ -1,0 +1,66 @@
+# OHART G5 Quality Gate — typecheck / lint / stylelint / test+coverage / SonarQube
+# Ref: 260723_quality-testing_governance.md §3.2
+
+name: ci
+
+on:
+  push:
+    branches: [develop, staging, main]
+  pull_request:
+    branches: [develop, staging, main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # SonarQube / diff coverage 분석에 전체 히스토리 필요
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bunx nuxi typecheck
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Stylelint
+        run: bun run stylelint
+
+      - name: Test with coverage
+        run: bun run test -- --coverage
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      # SONAR_TOKEN 이 GitHub Actions Secrets에 있을 때만 실행 (G4 시크릿 규칙)
+      - name: SonarQube Cloud Scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
