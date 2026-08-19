@@ -10,6 +10,7 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
   ]
 
   if (isSuperAdmin.value) {
+    primary.push({ label: '가입 승인', icon: 'i-lucide-user-check', to: '/approvals' })
     primary.push({ label: '부서 관리', icon: 'i-lucide-building-2', to: '/departments' })
   }
 
