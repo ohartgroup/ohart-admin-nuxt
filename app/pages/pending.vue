@@ -2,7 +2,16 @@
 definePageMeta({ layout: 'auth' })
 
 const supabase = useSupabaseClient()
-const { account, refresh } = useAdminAuth()
+const { account, isActive, refresh } = useAdminAuth()
+
+// refresh()는 store 상태만 갱신할 뿐 라우팅을 건드리지 않는다 — 같은 페이지에 머물러 있으면
+// 전역 미들웨어가 다시 안 돌기 때문에, active로 바뀌었으면 여기서 직접 이동시켜줘야 한다.
+const checkApproval = async () => {
+  await refresh()
+  if (isActive.value) {
+    navigateTo('/', { replace: true })
+  }
+}
 
 const signOut = async () => {
   await supabase.auth.signOut()
@@ -43,7 +52,7 @@ const signOut = async () => {
           label="새로고침"
           variant="soft"
           icon="i-lucide-refresh-cw"
-          @click="refresh"
+          @click="checkApproval"
         />
         <UButton
           label="로그아웃"

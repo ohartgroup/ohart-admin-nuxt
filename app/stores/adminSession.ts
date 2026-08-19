@@ -29,13 +29,18 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
 
     const supabase = useSupabaseClient<Database>()
     loading.value = true
-    const { data } = await supabase
+    // role_assignments는 admin_accounts를 두 번 참조한다(admin_account_id, granted_by).
+    // PostgREST 자동 임베딩이 어떤 FK를 쓸지 못 정해서 에러 나므로 FK 이름으로 명시해줘야 한다.
+    const { data, error } = await supabase
       .schema('admin')
       .from('admin_accounts')
-      .select('*, department:departments(*), role_assignments(*)')
+      .select('*, department:departments(*), role_assignments!role_assignments_admin_account_id_fkey(*)')
       .eq('user_id', user.value.sub as string)
       .maybeSingle()
 
+    if (error) {
+      console.error('[adminSession] fetch failed', error)
+    }
     account.value = data as AdminAccountWithRelations | null
     loading.value = false
     loaded.value = true
