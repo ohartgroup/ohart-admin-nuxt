@@ -25,6 +25,14 @@ const groupOptions = computed(() =>
 
 const parentName = (parentId: string | null) => departments.value.find(d => d.id === parentId)?.name ?? '-'
 
+const filterGroupId = ref<string | undefined>(undefined)
+const filteredDepartments = computed(() => {
+  if (!filterGroupId.value) {
+    return departments.value
+  }
+  return departments.value.filter(d => d.id === filterGroupId.value || d.parent_id === filterGroupId.value)
+})
+
 const loadDepartments = async () => {
   loading.value = true
   const { data } = await supabase
@@ -84,7 +92,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="p-6 max-w-2xl flex flex-col gap-6">
+  <div class="p-6 flex flex-col gap-6">
     <UPageCard
       v-if="loaded && !isSuperAdmin"
       title="접근 권한이 없습니다"
@@ -93,7 +101,10 @@ const columns = [
     />
 
     <template v-else>
-      <UPageCard title="부서 추가">
+      <UPageCard
+        title="부서 추가"
+        class="max-w-2xl"
+      >
         <div class="flex gap-2">
           <UInput
             v-model="newName"
@@ -124,11 +135,32 @@ const columns = [
         </div>
       </UPageCard>
 
-      <UTable
-        :data="departments"
+      <AppDataTable
+        :data="filteredDepartments"
         :columns="columns"
         :loading="loading"
+        :search-keys="['name', 'code']"
+        search-placeholder="부서명/코드 검색"
       >
+        <template #filters>
+          <USelect
+            v-model="filterGroupId"
+            :items="groupOptions"
+            value-key="value"
+            aria-label="그룹 필터"
+            placeholder="그룹으로 필터"
+            class="w-40"
+          />
+          <UButton
+            v-if="filterGroupId"
+            label="필터 해제"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            @click="filterGroupId = undefined"
+          />
+        </template>
+
         <template #parent-cell="{ row }">
           <span class="text-sm text-muted">{{ parentName(row.original.parent_id) }}</span>
         </template>
@@ -150,7 +182,7 @@ const columns = [
             @click="toggleActive(row.original)"
           />
         </template>
-      </UTable>
+      </AppDataTable>
     </template>
   </div>
 </template>
