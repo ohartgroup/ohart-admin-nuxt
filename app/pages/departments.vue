@@ -97,11 +97,13 @@ const columns = [
         <div class="flex gap-2">
           <UInput
             v-model="newName"
+            aria-label="부서명"
             placeholder="부서명"
             class="flex-1"
           />
           <UInput
             v-model="newCode"
+            aria-label="코드"
             placeholder="코드(선택)"
             class="w-32"
           />
@@ -109,6 +111,7 @@ const columns = [
             v-model="newParentId"
             :items="groupOptions"
             value-key="value"
+            aria-label="상위부서"
             placeholder="상위부서(선택)"
             class="w-40"
           />

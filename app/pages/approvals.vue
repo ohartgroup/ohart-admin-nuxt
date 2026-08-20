@@ -99,6 +99,7 @@ const columns = [
           v-model="selections[row.original.id]!.roleType"
           :items="roleOptions"
           value-key="value"
+          aria-label="권한"
           class="w-44"
         />
       </template>
@@ -108,6 +109,7 @@ const columns = [
           v-model="selections[row.original.id]!.departmentId"
           :items="departments"
           value-key="value"
+          aria-label="부서"
           placeholder="부서 선택"
           class="w-40"
         />

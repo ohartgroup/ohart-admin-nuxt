@@ -24,12 +24,15 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <ServiceSwitcher v-if="hasAnyService" />
+  <nav
+    aria-label="주 메뉴"
+    class="flex flex-col gap-4"
+  >
+    <LazyServiceSwitcher v-if="hasAnyService" />
 
     <UNavigationMenu
       orientation="vertical"
       :items="navItems"
     />
-  </div>
+  </nav>
 </template>
