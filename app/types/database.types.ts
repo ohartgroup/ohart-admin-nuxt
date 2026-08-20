@@ -269,6 +269,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_mfa_enrolled: { Args: never, Returns: undefined }
+      mark_mfa_unenrolled: { Args: never, Returns: undefined }
       update_own_department: {
         Args: { p_department_id?: string }
         Returns: undefined
