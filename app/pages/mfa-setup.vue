@@ -12,7 +12,7 @@ const verifying = ref(false)
 const loadError = ref('')
 
 onMounted(async () => {
-  const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' })
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'OhArt Admin' })
   if (error) {
     loadError.value = error.message
     return

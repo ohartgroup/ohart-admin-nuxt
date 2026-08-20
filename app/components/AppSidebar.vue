@@ -24,15 +24,15 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
 </script>
 
 <template>
-  <nav
-    aria-label="주 메뉴"
-    class="flex flex-col gap-4"
-  >
+  <div class="flex flex-col gap-4">
     <LazyServiceSwitcher v-if="hasAnyService" />
 
+    <!-- UNavigationMenu(reka-ui NavigationMenuRoot)가 이미 <nav>로 렌더링되므로
+         여기서 또 <nav>로 감싸면 중첩 landmark가 되어 접근성 검증기가 걸린다. -->
     <UNavigationMenu
       orientation="vertical"
+      aria-label="주 메뉴"
       :items="navItems"
     />
-  </nav>
+  </div>
 </template>
