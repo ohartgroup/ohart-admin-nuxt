@@ -14,6 +14,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  gitleaks:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # gitleaks/gitleaks-action은 private repo에서 라이선스가 필요해서,
+      # 대신 OSS CLI 바이너리를 직접 받아 무료로 돌린다(G4 보안 거버넌스 3.1).
+      - name: Install gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz | tar -xz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+
+      - name: Scan for secrets
+        run: gitleaks detect --source . --verbose --redact
+
   quality:
     name: Quality Gate
     runs-on: ubuntu-latest
