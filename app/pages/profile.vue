@@ -10,7 +10,8 @@ const toast = useToast()
 
 const displayName = ref('')
 const departmentId = ref<string | undefined>(undefined)
-const departments = ref<{ label: string, value: string }[]>([])
+const { options: departments, load: loadDepartments } = useDepartmentOptions()
+const services = ref<{ id: string, name: string }[]>([])
 const savingName = ref(false)
 const savingDepartment = ref(false)
 
@@ -25,17 +26,12 @@ const syncFromAccount = () => {
   departmentId.value = account.value?.department_id ?? undefined
 }
 
-const loadDepartments = async () => {
-  const { data } = await supabase
-    .schema('admin')
-    .from('departments')
-    .select('id, name')
-    .eq('active', true)
-    .eq('deleted', false)
-    .order('name')
-
-  departments.value = (data ?? []).map(d => ({ label: d.name, value: d.id }))
+const loadServices = async () => {
+  const { data } = await supabase.from('services').select('id, name')
+  services.value = data ?? []
 }
+
+const serviceName = (serviceId: string | null) => services.value.find(s => s.id === serviceId)?.name
 
 const loadDisplayName = async () => {
   if (!user.value) {
@@ -51,7 +47,7 @@ const loadDisplayName = async () => {
 
 onMounted(async () => {
   syncFromAccount()
-  await Promise.all([loadDepartments(), loadDisplayName()])
+  await Promise.all([loadDepartments(), loadDisplayName(), loadServices()])
 })
 
 const saveDisplayName = async () => {
@@ -137,7 +133,7 @@ const saveDepartment = async () => {
         <UBadge
           v-for="role in account.role_assignments"
           :key="role.id"
-          :label="roleLabels[role.role_type] ?? role.role_type"
+          :label="serviceName(role.service_id) ? `${roleLabels[role.role_type] ?? role.role_type} · ${serviceName(role.service_id)}` : (roleLabels[role.role_type] ?? role.role_type)"
           variant="subtle"
         />
       </div>

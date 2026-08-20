@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Database } from '~/types/database.types'
-
 definePageMeta({ layout: 'default', title: '가입 승인' })
 
 interface PendingAccount {
@@ -10,13 +8,12 @@ interface PendingAccount {
   user: { email: string | null, display_name: string | null } | null
 }
 
-const supabase = useSupabaseClient<Database>()
 const { isSuperAdmin, loaded } = useAdminAuth()
 const { log } = useAuditLog()
 const toast = useToast()
 
 const accounts = ref<PendingAccount[]>([])
-const departments = ref<{ label: string, value: string }[]>([])
+const { options: departments, load: loadDepartments } = useDepartmentOptions()
 const loading = ref(false)
 const selections = ref<Record<string, { roleType: string, departmentId?: string }>>({})
 
@@ -34,17 +31,6 @@ const loadAccounts = async () => {
     selections.value[account.id] ??= { roleType: 'service_admin' }
   }
   loading.value = false
-}
-
-const loadDepartments = async () => {
-  const { data } = await supabase
-    .schema('admin')
-    .from('departments')
-    .select('id, name')
-    .eq('active', true)
-    .eq('deleted', false)
-    .order('name')
-  departments.value = (data ?? []).map(d => ({ label: d.name, value: d.id }))
 }
 
 onMounted(async () => {
