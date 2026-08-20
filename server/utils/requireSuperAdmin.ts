@@ -16,6 +16,7 @@ export const requireSuperAdmin = async (event: H3Event) => {
     .from('admin_accounts')
     .select('id, status, role_assignments!role_assignments_admin_account_id_fkey(role_type)')
     .eq('user_id', user.sub)
+    .eq('role_assignments.deleted', false)
     .maybeSingle()
 
   const isSuperAdmin = account?.status === 'active'
