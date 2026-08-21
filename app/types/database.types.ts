@@ -162,6 +162,7 @@ export type Database = {
           deleted: boolean
           id: string
           name: string
+          parent_id: string | null
           update_user_id: string | null
           updated_at: string
         }
@@ -173,6 +174,7 @@ export type Database = {
           deleted?: boolean
           id?: string
           name: string
+          parent_id?: string | null
           update_user_id?: string | null
           updated_at?: string
         }
@@ -184,10 +186,19 @@ export type Database = {
           deleted?: boolean
           id?: string
           name?: string
+          parent_id?: string | null
           update_user_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'departments_parent_id_fkey'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'departments'
+            referencedColumns: ['id']
+          },
+        ]
       }
       role_assignments: {
         Row: {

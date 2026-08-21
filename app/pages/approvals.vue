@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Database } from '~/types/database.types'
-
 definePageMeta({ layout: 'default', title: '가입 승인' })
 
 interface PendingAccount {
@@ -10,15 +8,33 @@ interface PendingAccount {
   user: { email: string | null, display_name: string | null } | null
 }
 
-const supabase = useSupabaseClient<Database>()
 const { isSuperAdmin, loaded } = useAdminAuth()
 const { log } = useAuditLog()
 const toast = useToast()
 
 const accounts = ref<PendingAccount[]>([])
-const departments = ref<{ label: string, value: string }[]>([])
+const { options: departments, load: loadDepartments } = useDepartmentOptions()
 const loading = ref(false)
 const selections = ref<Record<string, { roleType: string, departmentId?: string }>>({})
+const statusFilter = ref<string | undefined>(undefined)
+
+const statusFilterOptions = [
+  { label: '대기', value: 'pending' },
+  { label: '거부됨', value: 'suspended' },
+]
+
+const filteredAccounts = computed(() => {
+  if (!statusFilter.value) {
+    return accounts.value
+  }
+  return accounts.value.filter(a => a.status === statusFilter.value)
+})
+
+const searchAccount = (row: Record<string, unknown>, query: string) => {
+  const account = row as unknown as PendingAccount
+  return (account.user?.email?.toLowerCase().includes(query) ?? false)
+    || (account.user?.display_name?.toLowerCase().includes(query) ?? false)
+}
 
 const roleOptions = [
   { label: 'Super Admin', value: 'super_admin' },
@@ -34,17 +50,6 @@ const loadAccounts = async () => {
     selections.value[account.id] ??= { roleType: 'service_admin' }
   }
   loading.value = false
-}
-
-const loadDepartments = async () => {
-  const { data } = await supabase
-    .schema('admin')
-    .from('departments')
-    .select('id, name')
-    .eq('active', true)
-    .eq('deleted', false)
-    .order('name')
-  departments.value = (data ?? []).map(d => ({ label: d.name, value: d.id }))
 }
 
 onMounted(async () => {
@@ -79,7 +84,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl">
+  <div class="p-6">
     <UPageCard
       v-if="loaded && !isSuperAdmin"
       title="접근 권한이 없습니다"
@@ -87,12 +92,33 @@ const columns = [
       icon="i-lucide-lock"
     />
 
-    <UTable
+    <AppDataTable
       v-else
-      :data="accounts"
+      :data="filteredAccounts"
       :columns="columns"
       :loading="loading"
+      :search-fn="searchAccount"
+      search-placeholder="이메일/이름 검색"
     >
+      <template #filters>
+        <USelect
+          v-model="statusFilter"
+          :items="statusFilterOptions"
+          value-key="value"
+          aria-label="상태 필터"
+          placeholder="상태로 필터"
+          class="w-32"
+        />
+        <UButton
+          v-if="statusFilter"
+          label="필터 해제"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          @click="statusFilter = undefined"
+        />
+      </template>
+
       <template #email-cell="{ row }">
         <div class="flex flex-col">
           <span class="font-medium">{{ row.original.user?.email }}</span>
@@ -113,6 +139,7 @@ const columns = [
           v-model="selections[row.original.id]!.roleType"
           :items="roleOptions"
           value-key="value"
+          aria-label="권한"
           class="w-44"
         />
       </template>
@@ -122,6 +149,7 @@ const columns = [
           v-model="selections[row.original.id]!.departmentId"
           :items="departments"
           value-key="value"
+          aria-label="부서"
           placeholder="부서 선택"
           class="w-40"
         />
@@ -144,6 +172,6 @@ const columns = [
           />
         </div>
       </template>
-    </UTable>
+    </AppDataTable>
   </div>
 </template>

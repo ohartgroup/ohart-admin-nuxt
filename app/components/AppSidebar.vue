@@ -11,6 +11,7 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
 
   if (isSuperAdmin.value) {
     primary.push({ label: '가입 승인', icon: 'i-lucide-user-check', to: '/approvals' })
+    primary.push({ label: '서비스 권한 관리', icon: 'i-lucide-shield-check', to: '/permissions' })
     primary.push({ label: '부서 관리', icon: 'i-lucide-building-2', to: '/departments' })
   }
 
@@ -23,12 +24,15 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <ServiceSwitcher v-if="hasAnyService" />
+  <nav
+    aria-label="주 메뉴"
+    class="flex flex-col gap-4"
+  >
+    <LazyServiceSwitcher v-if="hasAnyService" />
 
     <UNavigationMenu
       orientation="vertical"
       :items="navItems"
     />
-  </div>
+  </nav>
 </template>

@@ -36,6 +36,7 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
       .from('admin_accounts')
       .select('*, department:departments(*), role_assignments!role_assignments_admin_account_id_fkey(*)')
       .eq('user_id', user.value.sub as string)
+      .eq('role_assignments.deleted', false)
       .maybeSingle()
 
     if (error) {

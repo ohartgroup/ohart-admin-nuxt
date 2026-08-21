@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-elevated/30 px-4">
+  <main class="min-h-screen flex items-center justify-center bg-elevated/30 px-4">
     <div class="w-full max-w-sm">
       <div class="flex justify-center mb-8">
         <img
@@ -10,5 +10,5 @@
       </div>
       <slot />
     </div>
-  </div>
+  </main>
 </template>

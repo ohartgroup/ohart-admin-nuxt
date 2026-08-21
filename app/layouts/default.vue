@@ -51,7 +51,9 @@
       </template>
 
       <template #body>
-        <slot />
+        <main>
+          <slot />
+        </main>
       </template>
     </UDashboardPanel>
   </UDashboardGroup>
