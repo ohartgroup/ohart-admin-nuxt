@@ -11,6 +11,7 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
 
   if (isSuperAdmin.value) {
     primary.push({ label: '가입 승인', icon: 'i-lucide-user-check', to: '/approvals' })
+    primary.push({ label: '관리자 관리', icon: 'i-lucide-users', to: '/admins' })
     primary.push({ label: '서비스 권한 관리', icon: 'i-lucide-shield-check', to: '/permissions' })
     primary.push({ label: '부서 관리', icon: 'i-lucide-building-2', to: '/departments' })
   }
