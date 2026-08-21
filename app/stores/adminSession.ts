@@ -31,12 +31,13 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
 
     const supabase = useSupabaseClient<Database>()
     loading.value = true
-    // role_assignments는 admin_accounts를 두 번 참조한다(admin_account_id, granted_by).
-    // PostgREST 자동 임베딩이 어떤 FK를 쓸지 못 정해서 에러 나므로 FK 이름으로 명시해줘야 한다.
+    // role_assignments는 admin_accounts를 두 번 참조하고(admin_account_id, granted_by),
+    // admin_accounts↔departments도 이제 양방향 FK(department_id, departments.manager_admin_account_id)라
+    // PostgREST 자동 임베딩이 어떤 FK를 쓸지 못 정해서 에러 난다 — 둘 다 FK 이름으로 명시해야 한다.
     const { data, error } = await supabase
       .schema('admin')
       .from('admin_accounts')
-      .select('*, department:departments(*), role_assignments!role_assignments_admin_account_id_fkey(*)')
+      .select('*, department:departments!admin_accounts_department_id_fkey(*), role_assignments!role_assignments_admin_account_id_fkey(*)')
       .eq('user_id', user.value.sub as string)
       .eq('role_assignments.deleted', false)
       .maybeSingle()
@@ -48,15 +49,17 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
     loading.value = false
     loaded.value = true
 
-    await fetchManagedDepartments()
+    await fetchManagedDepartments(supabase)
   }
 
-  const fetchManagedDepartments = async () => {
+  // supabase 클라이언트를 인자로 받는다 — useSupabaseClient()를 await 이후(fetch() 내부)에서
+  // 다시 호출하면 "composable called outside setup" 에러가 난다(Nuxt 앱 컨텍스트가
+  // await 경계를 넘으면서 유실됨). fetch()가 이미 await 이전에 잡아둔 client를 그대로 넘겨써야 한다.
+  const fetchManagedDepartments = async (supabase: ReturnType<typeof useSupabaseClient<Database>>) => {
     if (!account.value) {
       managedDepartmentIds.value = []
       return
     }
-    const supabase = useSupabaseClient<Database>()
     const { data } = await supabase
       .schema('admin')
       .from('departments')

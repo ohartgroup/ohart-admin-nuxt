@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const { data: accounts, error: accountsError } = await client
     .schema('admin')
     .from('admin_accounts')
-    .select('id, status, user_id, department:departments(id, name), role_assignments!role_assignments_admin_account_id_fkey(id, role_type, service_id)')
+    .select('id, status, user_id, department:departments!admin_accounts_department_id_fkey(id, name), role_assignments!role_assignments_admin_account_id_fkey(id, role_type, service_id)')
     .eq('status', 'active')
     .eq('role_assignments.deleted', false)
     .order('created_at', { ascending: true })
