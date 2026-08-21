@@ -14,6 +14,7 @@ const { options: departments, load: loadDepartments } = useDepartmentOptions()
 const services = ref<{ id: string, name: string }[]>([])
 const savingName = ref(false)
 const savingDepartment = ref(false)
+const resettingMfa = ref(false)
 
 const roleLabels: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -82,6 +83,21 @@ const saveDepartment = async () => {
   await refresh()
   toast.add({ title: '부서가 저장되었습니다.', color: 'success' })
 }
+
+// 재설정 = 등록된 인증 수단 해제 + DB 플래그 되돌리기 → /mfa-setup에서 새로 등록.
+// unenroll은 세션이 aal2일 때만 허용되는데, 이 페이지 자체가 미들웨어를 통과해야 진입 가능해서
+// 이미 aal2인 상태라 별도 재인증 없이 바로 됨.
+const resetMfa = async () => {
+  resettingMfa.value = true
+  const { data } = await supabase.auth.mfa.listFactors()
+  const totp = data?.totp[0]
+  if (totp) {
+    await supabase.auth.mfa.unenroll({ factorId: totp.id })
+  }
+  await supabase.schema('admin').rpc('mark_mfa_unenrolled')
+  resettingMfa.value = false
+  navigateTo('/mfa-setup')
+}
 </script>
 
 <template>
@@ -143,6 +159,24 @@ const saveDepartment = async () => {
       >
         부여된 권한이 없습니다.
       </p>
+    </UPageCard>
+
+    <UPageCard title="2단계 인증(MFA)">
+      <div class="flex items-center justify-between">
+        <UBadge
+          label="등록됨"
+          color="success"
+          variant="subtle"
+        />
+        <UButton
+          label="재설정"
+          variant="soft"
+          color="neutral"
+          size="sm"
+          :loading="resettingMfa"
+          @click="resetMfa"
+        />
+      </div>
     </UPageCard>
   </div>
 </template>

@@ -1,6 +1,30 @@
 import { FetchError } from 'ofetch'
 
 const PUBLIC_ROUTES = ['/login', '/confirm']
+const MFA_ROUTES = ['/mfa-setup', '/mfa-challenge']
+
+// MFA는 로그인 세션의 AAL(Authenticator Assurance Level)에 의존적이라 client에서만 확인한다.
+// null을 반환하면 리다이렉트 불필요, 문자열이면 그 경로로 보낸다.
+const resolveMfaRedirect = async (path: string, mfaEnrolled: boolean): Promise<string | null> => {
+  if (!mfaEnrolled && path !== '/mfa-setup') {
+    return '/mfa-setup'
+  }
+  if (!mfaEnrolled) {
+    return null
+  }
+
+  const supabase = useSupabaseClient()
+  const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  const needsChallenge = data?.nextLevel === 'aal2' && data.currentLevel !== 'aal2'
+
+  if (needsChallenge && path !== '/mfa-challenge') {
+    return '/mfa-challenge'
+  }
+  if (!needsChallenge && MFA_ROUTES.includes(path)) {
+    return '/'
+  }
+  return null
+}
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const user = useSupabaseUser()
@@ -40,6 +64,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
   if (!isActive.value) {
     return navigateTo('/pending')
+  }
+
+  if (import.meta.client) {
+    const mfaRedirect = await resolveMfaRedirect(to.path, account.value?.mfa_enrolled ?? false)
+    if (mfaRedirect) {
+      return navigateTo(mfaRedirect)
+    }
+  }
+
+  if (MFA_ROUTES.includes(to.path)) {
+    return
   }
   if (to.path === '/login' || to.path === '/pending') {
     return navigateTo('/')
