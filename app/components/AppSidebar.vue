@@ -14,6 +14,7 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
     primary.push({ label: '관리자 관리', icon: 'i-lucide-users', to: '/admins' })
     primary.push({ label: '서비스 권한 관리', icon: 'i-lucide-shield-check', to: '/permissions' })
     primary.push({ label: '부서 관리', icon: 'i-lucide-building-2', to: '/departments' })
+    primary.push({ label: '감사 로그', icon: 'i-lucide-scroll-text', to: '/audit-logs' })
   }
 
   const secondary: NavigationMenuItem[] = [
