@@ -14,10 +14,12 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
   const account = ref<AdminAccountWithRelations | null>(null)
   const loading = ref(false)
   const loaded = ref(false)
+  const managedDepartmentIds = ref<string[]>([])
 
   const roles = computed(() => account.value?.role_assignments ?? [])
   const isSuperAdmin = computed(() => roles.value.some(r => r.role_type === 'super_admin'))
   const isActive = computed(() => account.value?.status === 'active')
+  const isDepartmentHead = computed(() => managedDepartmentIds.value.length > 0)
 
   const fetch = async () => {
     const user = useSupabaseUser()
@@ -45,6 +47,22 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
     account.value = data as AdminAccountWithRelations | null
     loading.value = false
     loaded.value = true
+
+    await fetchManagedDepartments()
+  }
+
+  const fetchManagedDepartments = async () => {
+    if (!account.value) {
+      managedDepartmentIds.value = []
+      return
+    }
+    const supabase = useSupabaseClient<Database>()
+    const { data } = await supabase
+      .schema('admin')
+      .from('departments')
+      .select('id')
+      .eq('manager_admin_account_id', account.value.id)
+    managedDepartmentIds.value = (data ?? []).map(d => d.id)
   }
 
   // admin_accounts row가 없으면(최초 매직링크 로그인) signup-check API로 pending 계정을 만든다.
@@ -64,7 +82,8 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
   const reset = () => {
     account.value = null
     loaded.value = false
+    managedDepartmentIds.value = []
   }
 
-  return { account, loading, loaded, roles, isSuperAdmin, isActive, fetch, ensureAccount, reset }
+  return { account, loading, loaded, managedDepartmentIds, roles, isSuperAdmin, isActive, isDepartmentHead, fetch, ensureAccount, reset }
 })
