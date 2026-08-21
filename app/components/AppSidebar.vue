@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-const { isSuperAdmin } = useAdminAuth()
+const { isSuperAdmin, isDepartmentHead } = useAdminAuth()
 const { hasAnyService } = useRoleAssignments()
 
 const navItems = computed<NavigationMenuItem[][]>(() => {
@@ -9,21 +9,32 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
     { label: '대시보드', icon: 'i-lucide-layout-dashboard', to: '/' },
   ]
 
-  // super_admin 전용 메뉴를 권한/목적별로 그룹핑한다. 서비스 모듈(아트보다 등)이 생기면
-  // 여기에 같은 패턴으로 그룹을 하나 더 추가하되, 그 그룹은 isSuperAdmin이 아니라
-  // 해당 서비스의 service_admin 권한(useRoleAssignments)으로 노출 여부를 결정해야 한다.
+  // "계정/조직" 그룹은 항목마다 권한이 달라서 개별적으로 조립한다.
+  // 가입 승인/부서 관리는 super_admin 전용, 관리자 관리는 부서장도 접근 가능(자기 부서로 스코프 제한).
+  const accountGroupChildren: NavigationMenuItem[] = []
   if (isSuperAdmin.value) {
+    accountGroupChildren.push({ label: '가입 승인', icon: 'i-lucide-user-check', to: '/approvals' })
+  }
+  if (isSuperAdmin.value || isDepartmentHead.value) {
+    accountGroupChildren.push({ label: '관리자 관리', icon: 'i-lucide-users', to: '/admins' })
+  }
+  if (isSuperAdmin.value) {
+    accountGroupChildren.push({ label: '부서 관리', icon: 'i-lucide-building-2', to: '/departments' })
+  }
+  if (accountGroupChildren.length > 0) {
     primary.push({
       label: '계정/조직',
       icon: 'i-lucide-users-round',
       type: 'trigger',
       defaultOpen: true,
-      children: [
-        { label: '가입 승인', icon: 'i-lucide-user-check', to: '/approvals' },
-        { label: '관리자 관리', icon: 'i-lucide-users', to: '/admins' },
-        { label: '부서 관리', icon: 'i-lucide-building-2', to: '/departments' },
-      ],
+      children: accountGroupChildren,
     })
+  }
+
+  // 서비스 모듈(아트보다 등)이 생기면 여기에 같은 패턴으로 그룹을 하나 더 추가하되,
+  // 그 그룹은 isSuperAdmin이 아니라 해당 서비스의 service_admin 권한(useRoleAssignments)으로
+  // 노출 여부를 결정해야 한다.
+  if (isSuperAdmin.value) {
     primary.push({
       label: '권한/보안',
       icon: 'i-lucide-shield-check',
