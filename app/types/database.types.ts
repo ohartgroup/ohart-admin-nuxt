@@ -271,6 +271,10 @@ export type Database = {
       }
       mark_mfa_enrolled: { Args: never, Returns: undefined }
       mark_mfa_unenrolled: { Args: never, Returns: undefined }
+      set_admin_department: {
+        Args: { p_admin_account_id: string, p_department_id?: string }
+        Returns: undefined
+      }
       update_own_department: {
         Args: { p_department_id?: string }
         Returns: undefined
