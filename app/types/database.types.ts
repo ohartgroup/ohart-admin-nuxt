@@ -161,6 +161,7 @@ export type Database = {
           created_at: string
           deleted: boolean
           id: string
+          manager_admin_account_id: string | null
           name: string
           parent_id: string | null
           update_user_id: string | null
@@ -173,6 +174,7 @@ export type Database = {
           created_at?: string
           deleted?: boolean
           id?: string
+          manager_admin_account_id?: string | null
           name: string
           parent_id?: string | null
           update_user_id?: string | null
@@ -185,12 +187,20 @@ export type Database = {
           created_at?: string
           deleted?: boolean
           id?: string
+          manager_admin_account_id?: string | null
           name?: string
           parent_id?: string | null
           update_user_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: 'departments_manager_admin_account_id_fkey'
+            columns: ['manager_admin_account_id']
+            isOneToOne: false
+            referencedRelation: 'admin_accounts'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'departments_parent_id_fkey'
             columns: ['parent_id']
@@ -267,6 +277,10 @@ export type Database = {
           p_role: Database['admin']['Enums']['admin_role_type']
           p_service_id?: string
         }
+        Returns: boolean
+      }
+      is_department_head: {
+        Args: { p_department_id: string }
         Returns: boolean
       }
       mark_mfa_enrolled: { Args: never, Returns: undefined }

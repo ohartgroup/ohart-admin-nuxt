@@ -8,6 +8,8 @@ export const useAdminAuth = () => {
     isActive: computed(() => store.isActive),
     isPending: computed(() => !store.account || store.account.status === 'pending'),
     isSuperAdmin: computed(() => store.isSuperAdmin),
+    isDepartmentHead: computed(() => store.isDepartmentHead),
+    managedDepartmentIds: computed(() => store.managedDepartmentIds),
     ensureAccount: () => store.ensureAccount(),
     refresh: () => store.fetch(),
   }

@@ -15,13 +15,21 @@ interface ActiveAccount {
   roleAssignments: RoleAssignment[]
 }
 
-const { isSuperAdmin, loaded } = useAdminAuth()
+const { isSuperAdmin, isDepartmentHead, managedDepartmentIds, loaded } = useAdminAuth()
+const hasAccess = computed(() => isSuperAdmin.value || isDepartmentHead.value)
 const supabase = useSupabaseClient()
 const { log } = useAuditLog()
 const toast = useToast()
 
 const accounts = ref<ActiveAccount[]>([])
 const { options: departmentOptions, load: loadDepartments } = useDepartmentOptions()
+// 부서장은 자기 관리 부서로만 배정 가능(실제 권한 경계는 set_admin_department RPC가 서버에서 다시 확인함).
+const scopedDepartmentOptions = computed(() => {
+  if (isSuperAdmin.value) {
+    return departmentOptions.value
+  }
+  return departmentOptions.value.filter(option => managedDepartmentIds.value.includes(option.value))
+})
 const loading = ref(false)
 const draftDepartment = ref<Record<string, string | undefined>>({})
 const saving = ref<Record<string, boolean>>({})
@@ -34,7 +42,7 @@ const roleLabels: Record<string, string> = {
 
 const loadAccounts = async () => {
   loading.value = true
-  const data = await $fetch<ActiveAccount[]>('/api/admin/active-accounts')
+  const data = await $fetch<ActiveAccount[]>('/api/admin/department-members')
   accounts.value = data
   for (const account of data) {
     draftDepartment.value[account.id] = account.department?.id
@@ -80,9 +88,9 @@ const columns = [
 <template>
   <div class="p-6">
     <UPageCard
-      v-if="loaded && !isSuperAdmin"
+      v-if="loaded && !hasAccess"
       title="접근 권한이 없습니다"
-      description="관리자 관리는 Super Admin만 사용할 수 있습니다."
+      description="관리자 관리는 Super Admin 또는 부서장만 사용할 수 있습니다."
       icon="i-lucide-lock"
     />
 
@@ -105,7 +113,7 @@ const columns = [
         <div class="flex gap-2">
           <USelect
             v-model="draftDepartment[row.original.id]"
-            :items="departmentOptions"
+            :items="scopedDepartmentOptions"
             value-key="value"
             aria-label="부서"
             placeholder="부서 선택"

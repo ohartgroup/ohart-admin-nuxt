@@ -1,15 +1,22 @@
-// public.users/public.services 조인은 스키마 경계 때문에 PostgREST 자동 임베딩이 불안정해서
-// (pending-accounts.get.ts와 동일 이슈) 따로 조회해 JS에서 합친다.
+// admins.vue 전용. super_admin은 전체 활성 관리자를, 부서장은 자기 관리 부서 소속(+미배정)만 본다.
+// public.users 조인은 스키마 경계 때문에 PostgREST 자동 임베딩이 불안정해서 따로 조회해 합친다.
 export default defineEventHandler(async (event) => {
-  const { client } = await requireSuperAdmin(event)
+  const { client, isSuperAdmin, managedDepartmentIds } = await requireDepartmentManager(event)
 
-  const { data: accounts, error: accountsError } = await client
+  let query = client
     .schema('admin')
     .from('admin_accounts')
-    .select('id, status, user_id, department:departments!admin_accounts_department_id_fkey(id, name), role_assignments!role_assignments_admin_account_id_fkey(id, role_type, service_id)')
+    .select('id, status, user_id, department_id, department:departments!admin_accounts_department_id_fkey(id, name), role_assignments!role_assignments_admin_account_id_fkey(id, role_type, service_id)')
     .eq('status', 'active')
     .eq('role_assignments.deleted', false)
     .order('created_at', { ascending: true })
+
+  if (!isSuperAdmin) {
+    const scope = managedDepartmentIds.map(id => `department_id.eq.${id}`).concat('department_id.is.null').join(',')
+    query = query.or(scope)
+  }
+
+  const { data: accounts, error: accountsError } = await query
 
   if (accountsError) {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: accountsError.message })
