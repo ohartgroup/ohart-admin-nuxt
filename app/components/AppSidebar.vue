@@ -3,6 +3,7 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 
 const { isSuperAdmin, isDepartmentHead } = useAdminAuth()
 const { hasAnyService } = useRoleAssignments()
+const { hasAccess: hasArtbodaAccess } = useServiceAccess('artboda')
 
 const navItems = computed<NavigationMenuItem[][]>(() => {
   const primary: NavigationMenuItem[] = [
@@ -31,9 +32,22 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
     })
   }
 
-  // 서비스 모듈(아트보다 등)이 생기면 여기에 같은 패턴으로 그룹을 하나 더 추가하되,
-  // 그 그룹은 isSuperAdmin이 아니라 해당 서비스의 service_admin 권한(useRoleAssignments)으로
-  // 노출 여부를 결정해야 한다.
+  // 아트보다: super_admin 또는 artboda service_admin에게만 노출(useServiceAccess).
+  if (hasArtbodaAccess.value) {
+    primary.push({
+      label: '아트보다',
+      icon: 'i-lucide-drama',
+      type: 'trigger',
+      defaultOpen: true,
+      children: [
+        { label: '문의 관리', icon: 'i-lucide-message-square', to: '/artboda/inquiries' },
+        { label: '기관 관리', icon: 'i-lucide-building', to: '/artboda/organizations' },
+        { label: '계약 관리', icon: 'i-lucide-file-signature', to: '/artboda/contracts' },
+        { label: '증빙 발급 관리', icon: 'i-lucide-receipt', to: '/artboda/documents' },
+      ],
+    })
+  }
+
   if (isSuperAdmin.value) {
     primary.push({
       label: '권한/보안',
