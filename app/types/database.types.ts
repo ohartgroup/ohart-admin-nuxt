@@ -302,6 +302,370 @@ export type Database = {
       [_ in never]: never
     }
   }
+  artboda: {
+    Tables: {
+      contract_bookings: {
+        Row: {
+          activated: boolean
+          booking_id: string
+          contract_id: string
+          created_at: string
+          deleted: boolean
+          id: string
+          update_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated?: boolean
+          booking_id: string
+          contract_id: string
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated?: boolean
+          booking_id?: string
+          contract_id?: string
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'contract_bookings_contract_id_fkey'
+            columns: ['contract_id']
+            isOneToOne: false
+            referencedRelation: 'contracts'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          activated: boolean
+          contract_number: string | null
+          created_at: string
+          deleted: boolean
+          id: string
+          inquiry_id: string
+          organization_id: string
+          payment_id: string | null
+          signed_at: string | null
+          status: Database['artboda']['Enums']['contract_status']
+          total_amount: number | null
+          update_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated?: boolean
+          contract_number?: string | null
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          inquiry_id: string
+          organization_id: string
+          payment_id?: string | null
+          signed_at?: string | null
+          status?: Database['artboda']['Enums']['contract_status']
+          total_amount?: number | null
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated?: boolean
+          contract_number?: string | null
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          inquiry_id?: string
+          organization_id?: string
+          payment_id?: string | null
+          signed_at?: string | null
+          status?: Database['artboda']['Enums']['contract_status']
+          total_amount?: number | null
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'contracts_inquiry_id_fkey'
+            columns: ['inquiry_id']
+            isOneToOne: true
+            referencedRelation: 'inquiries'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'contracts_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      inquiries: {
+        Row: {
+          activated: boolean
+          agreed_to_privacy: boolean
+          budget_range: string | null
+          contact_department: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone_encrypted: string | null
+          created_at: string
+          deleted: boolean
+          desired_schedule: string | null
+          expected_audience: number | null
+          id: string
+          performance_count: number | null
+          reference_code: string
+          requested_documents: Json | null
+          status: Database['artboda']['Enums']['inquiry_status']
+          target_audience: string | null
+          update_user_id: string | null
+          updated_at: string
+          user_id: string | null
+          venue: string | null
+        }
+        Insert: {
+          activated?: boolean
+          agreed_to_privacy?: boolean
+          budget_range?: string | null
+          contact_department?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone_encrypted?: string | null
+          created_at?: string
+          deleted?: boolean
+          desired_schedule?: string | null
+          expected_audience?: number | null
+          id?: string
+          performance_count?: number | null
+          reference_code: string
+          requested_documents?: Json | null
+          status?: Database['artboda']['Enums']['inquiry_status']
+          target_audience?: string | null
+          update_user_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          venue?: string | null
+        }
+        Update: {
+          activated?: boolean
+          agreed_to_privacy?: boolean
+          budget_range?: string | null
+          contact_department?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone_encrypted?: string | null
+          created_at?: string
+          deleted?: boolean
+          desired_schedule?: string | null
+          expected_audience?: number | null
+          id?: string
+          performance_count?: number | null
+          reference_code?: string
+          requested_documents?: Json | null
+          status?: Database['artboda']['Enums']['inquiry_status']
+          target_audience?: string | null
+          update_user_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      organization_members: {
+        Row: {
+          activated: boolean
+          created_at: string
+          deleted: boolean
+          id: string
+          organization_id: string
+          role: string | null
+          update_user_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activated?: boolean
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          organization_id: string
+          role?: string | null
+          update_user_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activated?: boolean
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          organization_id?: string
+          role?: string | null
+          update_user_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          activated: boolean
+          address: string | null
+          billing_email: string | null
+          business_registration_number: string | null
+          contract_started_at: string | null
+          created_at: string
+          deleted: boolean
+          id: string
+          name: string
+          org_type: Database['artboda']['Enums']['org_type']
+          phone_encrypted: string | null
+          update_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated?: boolean
+          address?: string | null
+          billing_email?: string | null
+          business_registration_number?: string | null
+          contract_started_at?: string | null
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          name: string
+          org_type: Database['artboda']['Enums']['org_type']
+          phone_encrypted?: string | null
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated?: boolean
+          address?: string | null
+          billing_email?: string | null
+          business_registration_number?: string | null
+          contract_started_at?: string | null
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          name?: string
+          org_type?: Database['artboda']['Enums']['org_type']
+          phone_encrypted?: string | null
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_documents: {
+        Row: {
+          activated: boolean
+          booking_id: string | null
+          contract_id: string | null
+          created_at: string
+          deleted: boolean
+          document_type: Database['artboda']['Enums']['document_type']
+          file_url: string | null
+          id: string
+          issued_at: string | null
+          payment_id: string
+          status: Database['artboda']['Enums']['document_status']
+          update_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated?: boolean
+          booking_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          deleted?: boolean
+          document_type: Database['artboda']['Enums']['document_type']
+          file_url?: string | null
+          id?: string
+          issued_at?: string | null
+          payment_id: string
+          status?: Database['artboda']['Enums']['document_status']
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated?: boolean
+          booking_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          deleted?: boolean
+          document_type?: Database['artboda']['Enums']['document_type']
+          file_url?: string | null
+          id?: string
+          issued_at?: string | null
+          payment_id?: string
+          status?: Database['artboda']['Enums']['document_status']
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'payment_documents_contract_id_fkey'
+            columns: ['contract_id']
+            isOneToOne: false
+            referencedRelation: 'contracts'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      current_organization_id: { Args: never, Returns: string }
+      decrypt_organization_phone: {
+        Args: { p_organization_id: string }
+        Returns: string
+      }
+    }
+    Enums: {
+      contract_status:
+        | 'draft'
+        | 'pending_payment'
+        | 'active'
+        | 'completed'
+        | 'canceled'
+      document_status: 'generated' | 'requested'
+      document_type:
+        | 'quote'
+        | 'contract'
+        | 'transaction_statement'
+        | 'receipt'
+        | 'tax_invoice'
+      inquiry_status: 'submitted' | 'quoted' | 'converted' | 'closed'
+      org_type:
+        | 'kindergarten'
+        | 'school'
+        | 'library'
+        | 'company'
+        | 'individual_business'
+        | 'other'
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activity_logs: {
@@ -1260,6 +1624,34 @@ export const Constants = {
     Enums: {
       admin_account_status: ['pending', 'active', 'suspended'],
       admin_role_type: ['super_admin', 'service_admin', 'settlement_viewer'],
+    },
+  },
+  artboda: {
+    Enums: {
+      contract_status: [
+        'draft',
+        'pending_payment',
+        'active',
+        'completed',
+        'canceled',
+      ],
+      document_status: ['generated', 'requested'],
+      document_type: [
+        'quote',
+        'contract',
+        'transaction_statement',
+        'receipt',
+        'tax_invoice',
+      ],
+      inquiry_status: ['submitted', 'quoted', 'converted', 'closed'],
+      org_type: [
+        'kindergarten',
+        'school',
+        'library',
+        'company',
+        'individual_business',
+        'other',
+      ],
     },
   },
   public: {
