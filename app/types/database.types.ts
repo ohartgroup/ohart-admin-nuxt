@@ -480,6 +480,51 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_document_versions: {
+        Row: {
+          activated: boolean
+          content: Json
+          created_at: string
+          deleted: boolean
+          doc_type: string
+          effective_date: string
+          eyebrow: string
+          id: string
+          title: string
+          update_user_id: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          activated?: boolean
+          content: Json
+          created_at?: string
+          deleted?: boolean
+          doc_type: string
+          effective_date: string
+          eyebrow: string
+          id?: string
+          title: string
+          update_user_id?: string | null
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          activated?: boolean
+          content?: Json
+          created_at?: string
+          deleted?: boolean
+          doc_type?: string
+          effective_date?: string
+          eyebrow?: string
+          id?: string
+          title?: string
+          update_user_id?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       organization_members: {
         Row: {
           activated: boolean
