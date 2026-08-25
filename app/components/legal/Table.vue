@@ -8,20 +8,20 @@ defineProps<{
 
 <template>
   <div class="overflow-hidden rounded-lg border border-accented">
-    <div class="bg-muted px-3.5 py-2.5">
-      <p class="text-xs font-bold text-highlighted">
+    <div class="bg-muted px-4 py-3">
+      <p class="text-base font-bold text-highlighted">
         {{ title }}
       </p>
     </div>
     <div
       v-for="(row, index) in rows"
       :key="index"
-      class="flex gap-2.5 border-t border-accented px-3.5 py-2.5"
+      class="flex gap-3 border-t border-accented px-4 py-3"
     >
-      <p class="w-[140px] shrink-0 text-[11px] font-bold text-highlighted sm:w-[180px]">
+      <p class="w-[160px] shrink-0 text-sm font-bold text-highlighted sm:w-[200px]">
         {{ row.label }}
       </p>
-      <p class="flex-1 text-[11px] text-toned">
+      <p class="flex-1 text-sm text-toned">
         {{ row.value }}
       </p>
     </div>

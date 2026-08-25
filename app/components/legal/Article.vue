@@ -14,12 +14,12 @@ defineProps<{
     :id="id"
     class="scroll-mt-4 space-y-1.5 border-b border-accented pb-3"
   >
-    <p class="text-base font-bold text-highlighted">
+    <p class="text-lg font-bold text-highlighted">
       {{ heading }}
     </p>
     <!-- eslint-disable vue/no-v-html -->
     <div
-      class="space-y-1.5 text-xs leading-relaxed text-toned [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
+      class="space-y-1.5 text-base leading-relaxed text-toned [&_p]:leading-relaxed [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
       v-html="body"
     />
     <!-- eslint-enable vue/no-v-html -->

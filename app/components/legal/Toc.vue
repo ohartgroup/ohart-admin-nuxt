@@ -10,7 +10,7 @@ defineProps<{
     aria-label="목차"
     class="rounded-xl border border-accented bg-muted p-4 lg:sticky lg:top-24"
   >
-    <p class="text-base font-bold text-highlighted">
+    <p class="text-lg font-bold text-highlighted">
       목차
     </p>
     <ul class="mt-2 space-y-2">
@@ -20,7 +20,7 @@ defineProps<{
       >
         <a
           :href="`#${item.id}`"
-          class="text-xs font-medium text-toned hover:text-highlighted"
+          class="text-sm font-medium text-toned hover:text-highlighted"
         >
           {{ item.label }}
         </a>

@@ -9,13 +9,13 @@ defineProps<{
 
 <template>
   <div>
-    <p class="text-xs font-bold tracking-wide text-muted">
+    <p class="text-sm font-bold tracking-wide text-muted">
       {{ eyebrow }}
     </p>
-    <h1 class="mt-2 text-2xl leading-tight font-black text-highlighted lg:text-[34px]">
+    <h1 class="mt-2 text-3xl leading-tight font-black text-highlighted lg:text-[38px]">
       {{ title }}
     </h1>
-    <p class="mt-2 text-sm text-toned">
+    <p class="mt-2 text-base text-toned">
       {{ meta }}
     </p>
   </div>
