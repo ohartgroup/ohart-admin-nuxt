@@ -81,7 +81,36 @@ const columns = [
   { accessorKey: 'effective_date', header: '시행일' },
   { accessorKey: 'title', header: '제목' },
   { accessorKey: 'created_at', header: '등록일' },
+  { id: 'preview', header: '' },
 ]
+
+// 미리보기는 등록된 버전(행 클릭)과 등록 폼 초안(draft) 둘 다에서 쓴다.
+// 실제 사용자 화면(artboda-web-nuxt terms.vue/privacy.vue)과 동일한 컴포넌트(LegalHero/Toc/Article/Table)로
+// 렌더링해서, 저장 전에 실제 레이아웃이 어떻게 보일지 그대로 확인할 수 있게 한다.
+const showPreview = ref(false)
+const previewSource = ref<{ eyebrow: string, title: string, effectiveDate: string, toc: { id: string, label: string }[], blocks: LegalBlock[] } | null>(null)
+
+const previewVersion = (row: LegalDocumentVersion) => {
+  previewSource.value = {
+    eyebrow: row.eyebrow,
+    title: row.title,
+    effectiveDate: row.effective_date,
+    toc: row.content.toc,
+    blocks: row.content.blocks,
+  }
+  showPreview.value = true
+}
+
+const previewDraft = () => {
+  previewSource.value = {
+    eyebrow: draftEyebrow.value,
+    title: draftTitle.value,
+    effectiveDate: draftEffectiveDate.value,
+    toc: draftToc.value,
+    blocks: draftBlocks.value,
+  }
+  showPreview.value = true
+}
 </script>
 
 <template>
@@ -107,6 +136,16 @@ const columns = [
       </template>
       <template #created_at-cell="{ row }">
         <span class="text-xs text-muted">{{ new Date(row.original.created_at).toLocaleDateString('ko-KR') }}</span>
+      </template>
+      <template #preview-cell="{ row }">
+        <UButton
+          label="미리보기"
+          icon="i-lucide-eye"
+          size="xs"
+          variant="ghost"
+          color="neutral"
+          @click="previewVersion(row.original)"
+        />
       </template>
     </AppDataTable>
 
@@ -198,6 +237,13 @@ const columns = [
             @click="submitNewVersion"
           />
           <UButton
+            label="미리보기"
+            icon="i-lucide-eye"
+            variant="soft"
+            color="neutral"
+            @click="previewDraft"
+          />
+          <UButton
             label="취소"
             variant="ghost"
             color="neutral"
@@ -206,5 +252,23 @@ const columns = [
         </div>
       </div>
     </UPageCard>
+
+    <USlideover
+      v-model:open="showPreview"
+      title="미리보기"
+      :description="previewSource ? `${docTypeLabels[activeDocType]} · 시행일 ${previewSource.effectiveDate || '미지정'}` : ''"
+      :ui="{ content: 'max-w-2xl' }"
+    >
+      <template #body>
+        <LegalPreviewPanel
+          v-if="previewSource"
+          :eyebrow="previewSource.eyebrow"
+          :title="previewSource.title"
+          :meta="`시행일 ${previewSource.effectiveDate || '미지정'}`"
+          :toc="previewSource.toc"
+          :blocks="previewSource.blocks"
+        />
+      </template>
+    </USlideover>
   </div>
 </template>
