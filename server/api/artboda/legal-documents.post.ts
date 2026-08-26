@@ -6,7 +6,6 @@ interface CreateVersionBody {
   effectiveDate: string
   title: string
   eyebrow: string
-  toc: { id: string, label: string }[]
   blocks: LegalBlock[]
 }
 
@@ -41,7 +40,7 @@ export default defineEventHandler(async (event) => {
       effective_date: body.effectiveDate,
       title: body.title,
       eyebrow: body.eyebrow,
-      content: { toc: body.toc, blocks: body.blocks } as unknown as Json,
+      content: { blocks: body.blocks } as unknown as Json,
     })
 
   if (error) {

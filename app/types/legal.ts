@@ -19,6 +19,6 @@ export interface LegalDocumentVersion {
   effective_date: string
   title: string
   eyebrow: string
-  content: { toc: { id: string, label: string }[], blocks: LegalBlock[] }
+  content: { blocks: LegalBlock[] }
   created_at: string
 }

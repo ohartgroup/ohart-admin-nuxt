@@ -15,36 +15,39 @@ const creating = ref(false)
 
 const loadVersions = async () => {
   loading.value = true
-  versions.value = await $fetch<LegalDocumentVersion[]>('/api/artboda/legal-documents', { query: { docType: activeDocType.value } })
-  loading.value = false
+  try {
+    versions.value = await $fetch<LegalDocumentVersion[]>('/api/artboda/legal-documents', { query: { docType: activeDocType.value } })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '목록을 불러오지 못했습니다.'
+    toast.add({ title: message, color: 'error' })
+  } finally {
+    loading.value = false
+  }
 }
 
 watch(activeDocType, loadVersions)
 onMounted(loadVersions)
 
-// 이미 시행된 최신 버전을 그대로 복제해서 시작하면(제목/eyebrow/목차/블록 전부),
+// 이미 시행된 최신 버전을 그대로 복제해서 시작하면(제목/eyebrow/블록 전부),
 // 관리자가 매번 조항을 처음부터 새로 안 써도 되고 실수로 조항이 누락될 일도 줄어든다.
 const draftTitle = ref('')
 const draftEyebrow = ref('')
 const draftEffectiveDate = ref('')
-const draftToc = ref<{ id: string, label: string }[]>([])
 const draftBlocks = ref<LegalBlock[]>([])
+
+// versions.value의 항목은 Vue reactive proxy라 structuredClone에 그대로 넘기면
+// "could not be cloned" 에러가 난다. content는 jsonb라 JSON round-trip으로 안전하게 복제한다.
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value))
+}
 
 const startNewVersion = () => {
   const latest = versions.value[0]
   draftTitle.value = latest?.title ?? ''
   draftEyebrow.value = latest?.eyebrow ?? ''
   draftEffectiveDate.value = ''
-  draftToc.value = latest ? structuredClone(latest.content.toc) : []
-  draftBlocks.value = latest ? structuredClone(latest.content.blocks) : []
+  draftBlocks.value = latest ? cloneJson(latest.content.blocks) : []
   showCreateForm.value = true
-}
-
-const addTocItem = () => {
-  draftToc.value.push({ id: `toc-${Date.now().toString(36)}`, label: '' })
-}
-const removeTocItem = (index: number) => {
-  draftToc.value.splice(index, 1)
 }
 
 const submitNewVersion = async () => {
@@ -61,7 +64,6 @@ const submitNewVersion = async () => {
         effectiveDate: draftEffectiveDate.value,
         title: draftTitle.value,
         eyebrow: draftEyebrow.value,
-        toc: draftToc.value,
         blocks: draftBlocks.value,
       },
     })
@@ -88,14 +90,13 @@ const columns = [
 // 실제 사용자 화면(artboda-web-nuxt terms.vue/privacy.vue)과 동일한 컴포넌트(LegalHero/Toc/Article/Table)로
 // 렌더링해서, 저장 전에 실제 레이아웃이 어떻게 보일지 그대로 확인할 수 있게 한다.
 const showPreview = ref(false)
-const previewSource = ref<{ eyebrow: string, title: string, effectiveDate: string, toc: { id: string, label: string }[], blocks: LegalBlock[] } | null>(null)
+const previewSource = ref<{ eyebrow: string, title: string, effectiveDate: string, blocks: LegalBlock[] } | null>(null)
 
 const previewVersion = (row: LegalDocumentVersion) => {
   previewSource.value = {
     eyebrow: row.eyebrow,
     title: row.title,
     effectiveDate: row.effective_date,
-    toc: row.content.toc,
     blocks: row.content.blocks,
   }
   showPreview.value = true
@@ -106,7 +107,6 @@ const previewDraft = () => {
     eyebrow: draftEyebrow.value,
     title: draftTitle.value,
     effectiveDate: draftEffectiveDate.value,
-    toc: draftToc.value,
     blocks: draftBlocks.value,
   }
   showPreview.value = true
@@ -196,38 +196,6 @@ const previewDraft = () => {
           </UFormField>
         </div>
 
-        <UFormField label="목차">
-          <div class="flex flex-col gap-2">
-            <div
-              v-for="(item, index) in draftToc"
-              :key="item.id"
-              class="flex gap-2"
-            >
-              <UInput
-                v-model="item.label"
-                aria-label="목차 항목"
-                placeholder="목차 항목"
-                class="flex-1"
-              />
-              <UButton
-                icon="i-lucide-x"
-                size="xs"
-                variant="ghost"
-                color="error"
-                @click="removeTocItem(index)"
-              />
-            </div>
-            <UButton
-              label="목차 항목 추가"
-              icon="i-lucide-plus"
-              size="xs"
-              variant="soft"
-              class="self-start"
-              @click="addTocItem"
-            />
-          </div>
-        </UFormField>
-
         <LegalBlockEditor v-model="draftBlocks" />
 
         <div class="flex gap-2">
@@ -265,7 +233,6 @@ const previewDraft = () => {
           :eyebrow="previewSource.eyebrow"
           :title="previewSource.title"
           :meta="`시행일 ${previewSource.effectiveDate || '미지정'}`"
-          :toc="previewSource.toc"
           :blocks="previewSource.blocks"
         />
       </template>
