@@ -44,6 +44,7 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
         { label: '기관 관리', icon: 'i-lucide-building', to: '/artboda/organizations' },
         { label: '계약 관리', icon: 'i-lucide-file-signature', to: '/artboda/contracts' },
         { label: '증빙 발급 관리', icon: 'i-lucide-receipt', to: '/artboda/documents' },
+        { label: '약관 관리', icon: 'i-lucide-scroll', to: '/artboda/legal' },
       ],
     })
   }
