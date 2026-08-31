@@ -8,28 +8,28 @@
       :default-size="15"
     >
       <template #header="{ collapsed }">
-        <NuxtLink
-          to="/"
-          class="flex items-center px-1"
+        <div
+          class="flex items-center w-full px-1"
+          :class="collapsed ? 'justify-center' : 'justify-between'"
         >
-          <img
+          <NuxtLink
             v-if="!collapsed"
-            src="/oart-logo.png"
-            alt="OhArt"
-            class="w-auto h-5 shrink-0"
+            to="/"
+            class="flex items-center"
           >
-          <UIcon
-            v-else
-            name="i-lucide-circle"
-            class="size-5 text-primary"
-          />
-        </NuxtLink>
+            <img
+              src="/oart-logo.png"
+              alt="OhArt"
+              class="w-auto h-5 shrink-0"
+            >
+          </NuxtLink>
+          <UDashboardSidebarCollapse />
+        </div>
       </template>
 
       <AppSidebar />
 
       <template #footer="{ collapsed }">
-        <UDashboardSidebarCollapse />
         <UColorModeButton v-if="!collapsed" />
       </template>
     </UDashboardSidebar>
@@ -51,7 +51,9 @@
       </template>
 
       <template #body>
-        <slot />
+        <main>
+          <slot />
+        </main>
       </template>
     </UDashboardPanel>
   </UDashboardGroup>

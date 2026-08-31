@@ -23,7 +23,7 @@
     "version:patch": "node scripts/version-manager.js patch",
     "version:clear": "node scripts/version-manager.js clear",
     "supabase:login": "supabase login",
-    "supabase:type": "supabase gen types typescript --project-id fgpmbbuodmypvuifafhi --schema public,admin > app/types/database.types.ts"
+    "supabase:type": "supabase gen types typescript --project-id fgpmbbuodmypvuifafhi --schema public,admin,artboda > app/types/database.types.ts"
   },
   "dependencies": {
     "@i2d/nuxt-pdf-frame": "0.6.1",

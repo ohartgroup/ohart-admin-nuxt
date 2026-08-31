@@ -5,14 +5,13 @@ definePageMeta({ layout: 'default', title: '내 정보' })
 
 const supabase = useSupabaseClient<Database>()
 const user = useSupabaseUser()
-const { account, refresh } = useAdminAuth()
+const { account } = useAdminAuth()
 const toast = useToast()
 
 const displayName = ref('')
-const departmentId = ref<string | undefined>(undefined)
-const departments = ref<{ label: string, value: string }[]>([])
+const services = ref<{ id: string, name: string }[]>([])
 const savingName = ref(false)
-const savingDepartment = ref(false)
+const resettingMfa = ref(false)
 
 const roleLabels: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -22,20 +21,14 @@ const roleLabels: Record<string, string> = {
 
 const syncFromAccount = () => {
   displayName.value = user.value?.user_metadata?.display_name ?? user.value?.email ?? ''
-  departmentId.value = account.value?.department_id ?? undefined
 }
 
-const loadDepartments = async () => {
-  const { data } = await supabase
-    .schema('admin')
-    .from('departments')
-    .select('id, name')
-    .eq('active', true)
-    .eq('deleted', false)
-    .order('name')
-
-  departments.value = (data ?? []).map(d => ({ label: d.name, value: d.id }))
+const loadServices = async () => {
+  const { data } = await supabase.from('services').select('id, name')
+  services.value = data ?? []
 }
+
+const serviceName = (serviceId: string | null) => services.value.find(s => s.id === serviceId)?.name
 
 const loadDisplayName = async () => {
   if (!user.value) {
@@ -51,7 +44,7 @@ const loadDisplayName = async () => {
 
 onMounted(async () => {
   syncFromAccount()
-  await Promise.all([loadDepartments(), loadDisplayName()])
+  await Promise.all([loadDisplayName(), loadServices()])
 })
 
 const saveDisplayName = async () => {
@@ -72,19 +65,19 @@ const saveDisplayName = async () => {
   toast.add({ title: '이름이 저장되었습니다.', color: 'success' })
 }
 
-const saveDepartment = async () => {
-  savingDepartment.value = true
-  const { error } = await supabase
-    .schema('admin')
-    .rpc('update_own_department', { p_department_id: departmentId.value })
-  savingDepartment.value = false
-
-  if (error) {
-    toast.add({ title: '부서 저장에 실패했습니다.', description: error.message, color: 'error' })
-    return
+// 재설정 = 등록된 인증 수단 해제 + DB 플래그 되돌리기 → /mfa-setup에서 새로 등록.
+// unenroll은 세션이 aal2일 때만 허용되는데, 이 페이지 자체가 미들웨어를 통과해야 진입 가능해서
+// 이미 aal2인 상태라 별도 재인증 없이 바로 됨.
+const resetMfa = async () => {
+  resettingMfa.value = true
+  const { data } = await supabase.auth.mfa.listFactors()
+  const totp = data?.totp[0]
+  if (totp) {
+    await supabase.auth.mfa.unenroll({ factorId: totp.id })
   }
-  await refresh()
-  toast.add({ title: '부서가 저장되었습니다.', color: 'success' })
+  await supabase.schema('admin').rpc('mark_mfa_unenrolled')
+  resettingMfa.value = false
+  navigateTo('/mfa-setup')
 }
 </script>
 
@@ -109,20 +102,12 @@ const saveDepartment = async () => {
       </UFormField>
 
       <UFormField label="부서">
-        <div class="flex gap-2">
-          <USelect
-            v-model="departmentId"
-            :items="departments"
-            value-key="value"
-            placeholder="부서 선택"
-            class="w-full"
-          />
-          <UButton
-            label="저장"
-            :loading="savingDepartment"
-            @click="saveDepartment"
-          />
-        </div>
+        <p class="text-sm">
+          {{ account?.department?.name ?? '미지정' }}
+        </p>
+        <p class="text-xs text-muted mt-1">
+          부서는 관리자만 변경할 수 있습니다.
+        </p>
       </UFormField>
     </UPageCard>
 
@@ -137,7 +122,7 @@ const saveDepartment = async () => {
         <UBadge
           v-for="role in account.role_assignments"
           :key="role.id"
-          :label="roleLabels[role.role_type] ?? role.role_type"
+          :label="serviceName(role.service_id) ? `${roleLabels[role.role_type] ?? role.role_type} · ${serviceName(role.service_id)}` : (roleLabels[role.role_type] ?? role.role_type)"
           variant="subtle"
         />
       </div>
@@ -147,6 +132,24 @@ const saveDepartment = async () => {
       >
         부여된 권한이 없습니다.
       </p>
+    </UPageCard>
+
+    <UPageCard title="2단계 인증(MFA)">
+      <div class="flex items-center justify-between">
+        <UBadge
+          label="등록됨"
+          color="success"
+          variant="subtle"
+        />
+        <UButton
+          label="재설정"
+          variant="soft"
+          color="neutral"
+          size="sm"
+          :loading="resettingMfa"
+          @click="resetMfa"
+        />
+      </div>
     </UPageCard>
   </div>
 </template>

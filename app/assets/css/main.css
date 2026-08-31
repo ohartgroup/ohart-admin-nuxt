@@ -1,2 +1,9 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* Tailwind preflight가 button에 cursor:default를 강제해서 UButton 등에서 pointer가 안 뜨는 문제 보정 */
+@layer base {
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+}
