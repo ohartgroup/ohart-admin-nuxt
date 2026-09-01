@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   // @nuxtjs/seo(nuxt-site-config)의 기본 titleTemplate이 %siteName을 참조하는데
   // site.name을 설정 안 하면 치환이 안 되고 탭 제목에 "%siteName"이 그대로 노출된다.
   site: {
-    name: 'ohart-admin',
+    name: '오아트 통합어드민',
   },
   colorMode: {
     preference: 'system',
