@@ -40,9 +40,10 @@ export default defineNuxtConfig({
       applicationVersion: JSON.stringify(packageJson.version),
     },
   },
-  routeRules: {
-    '/': { prerender: true },
-  },
+  // '/'는 로그인 필요한 대시보드 홈이라 prerender하면 안 됨 — 빌드 시점(세션 없음)에
+  // 미들웨어가 결정한 /login 리디렉션이 정적으로 굳어버려서, 실제 로그인 상태와 무관하게
+  // 항상 캐시된 리디렉션을 반환해 /login ↔ / 무한루프가 발생했다(2026-09-01 production 장애).
+  routeRules: {},
   compatibilityDate: '2026-06-30',
   eslint: {
     config: {
