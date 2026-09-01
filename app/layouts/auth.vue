@@ -12,3 +12,8 @@
     </div>
   </main>
 </template>
+
+<script setup lang="ts">
+const route = useRoute()
+useHead({ title: computed(() => (route.meta.title as string | undefined) ?? '로그인') })
+</script>
