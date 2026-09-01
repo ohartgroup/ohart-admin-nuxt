@@ -65,6 +65,20 @@ export default defineNuxtConfig({
       },
     },
   },
+  // Nuxt UI의 UDashboardSidebar가 데스크톱/모바일 드로어용으로 사이드바 콘텐츠(AppSidebar)를
+  // SSR HTML에 두 벌 렌더링하는 구조라(라이브러리 내부 동작, 우리 코드가 아님), reka-ui가 생성하는
+  // 아코디언/셀렉트 id가 두 사본 사이에서 겹쳐 아래 4개 규칙이 항상 오탐으로 걸린다.
+  // dev 콘솔에서만 보이고 production(prerender 없음)엔 영향 없음 — 노이즈만 끈다.
+  htmlValidator: {
+    options: {
+      rules: {
+        'no-dup-id': 'off',
+        'prefer-native-element': 'off',
+        'no-missing-references': 'off',
+        'unique-landmark': 'off',
+      },
+    },
+  },
   supabase: {
     redirect: false,
   },
