@@ -31,6 +31,11 @@ export default defineNuxtConfig({
     enabled: true,
   },
   css: ['~/assets/css/main.css'],
+  // @nuxtjs/seo(nuxt-site-config)의 기본 titleTemplate이 %siteName을 참조하는데
+  // site.name을 설정 안 하면 치환이 안 되고 탭 제목에 "%siteName"이 그대로 노출된다.
+  site: {
+    name: 'ohart-admin',
+  },
   colorMode: {
     preference: 'system',
     fallback: 'light',
@@ -38,6 +43,13 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       applicationVersion: JSON.stringify(packageJson.version),
+      // 절대 URL이 필요한 곳(서버 사이드 링크 생성 등)에서 쓸 환경별 기준 URL.
+      // Vercel Environment Variables로 브랜치별 오버라이드 가능하지만, 도메인이 이미
+      // 고정되어 있어서 기본값만으로도 바로 동작한다.
+      localBaseUrl: process.env.LOCAL_BASE_URL || 'http://localhost:3041',
+      devBaseUrl: process.env.DEV_BASE_URL || 'https://dev.admin.ohart.co.kr',
+      stagingBaseUrl: process.env.STAGING_BASE_URL || 'https://stage.admin.ohart.co.kr',
+      productionBaseUrl: process.env.PRODUCTION_BASE_URL || 'https://admin.ohart.co.kr',
     },
   },
   // '/'는 로그인 필요한 대시보드 홈이라 prerender하면 안 됨 — 빌드 시점(세션 없음)에
