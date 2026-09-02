@@ -3,7 +3,7 @@ import type { PerformanceType } from '~/types/performance'
 
 // 등록 폼과 수정 폼이 필드 구성을 그대로 공유한다(performances.vue에서 둘 다 이 컴포넌트를 쓴다).
 // productId가 null이면(신규 등록, 저장 전) 이미지는 로컬에 쌓아뒀다가 부모가
-// flushPendingUploads(productId)를 호출할 때 업로드된다 — PerformanceImageUploader 참고.
+// flushPendingUploads(productId)를 호출할 때 업로드된다 — PerformancesImageUploader 참고.
 const props = defineProps<{
   services: { id: string, name: string }[]
   productId: string | null
@@ -129,7 +129,7 @@ const toggleExposedService = (id: string) => {
     </UFormField>
 
     <UFormField label="이미지">
-      <PerformanceImageUploader
+      <PerformancesImageUploader
         ref="imageUploaderRef"
         v-model="images"
         :product-id="props.productId"

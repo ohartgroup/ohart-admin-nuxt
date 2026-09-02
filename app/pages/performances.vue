@@ -76,7 +76,7 @@ const submitNewPerformance = async () => {
   }
   creating.value = true
   try {
-    // 등록 시점엔 상품이 아직 없어서 이미지는 폼에 로컬로만 쌓여 있다(PerformanceImageUploader).
+    // 등록 시점엔 상품이 아직 없어서 이미지는 폼에 로컬로만 쌓여 있다(PerformancesImageUploader).
     // 상품을 먼저 만들고 productId를 받은 뒤에야 그 이미지들을 실제로 업로드할 수 있다.
     const { productId } = await $fetch<{ created: true, productId: string }>('/api/performances', {
       method: 'POST',
@@ -106,7 +106,7 @@ const submitNewPerformance = async () => {
 }
 
 // ── 수정 ────────────────────────────────────────────────────
-// 등록 폼과 필드 구성이 완전히 같아서 PerformanceForm을 그대로 재사용 —
+// 등록 폼과 필드 구성이 완전히 같아서 PerformancesForm을 그대로 재사용 —
 // 상태만 별도 ref로 두는 이유는 "수정 중 취소"가 등록 폼 상태를 건드리지 않게 하기 위함.
 const showEditForm = ref(false)
 const saving = ref(false)
@@ -253,7 +253,7 @@ const columns = [
       title="신규 공연작품 등록"
     >
       <div class="flex flex-col gap-4">
-        <PerformanceForm
+        <PerformancesForm
           ref="createFormRef"
           v-model:name="draftName"
           v-model:price="draftPrice"
@@ -301,7 +301,7 @@ const columns = [
             />
           </UFormField>
 
-          <PerformanceForm
+          <PerformancesForm
             v-model:name="editName"
             v-model:price="editPrice"
             v-model:category="editCategory"
