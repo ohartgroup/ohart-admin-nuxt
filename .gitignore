@@ -26,3 +26,4 @@ logs
 
 .stylelintcache
 supabase/.temp
+.vercel
