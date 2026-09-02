@@ -4,6 +4,7 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const { isSuperAdmin, isDepartmentHead } = useAdminAuth()
 const { hasAnyService } = useRoleAssignments()
 const { hasAccess: hasArtbodaAccess } = useServiceAccess('artboda')
+const { hasAccess: hasCatalogAccess } = useCatalogAccess()
 
 const navItems = computed<NavigationMenuItem[][]>(() => {
   const primary: NavigationMenuItem[] = [
@@ -29,6 +30,20 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
       type: 'trigger',
       defaultOpen: true,
       children: accountGroupChildren,
+    })
+  }
+
+  // 공용: 특정 서비스에 종속되지 않고 여러 서비스를 가로지르는 화면. 서비스명을 하드코딩하지
+  // 않고 "service_admin으로 배정된 서비스가 하나라도 있으면" 노출한다(useCatalogAccess).
+  if (hasCatalogAccess.value) {
+    primary.push({
+      label: '공용',
+      icon: 'i-lucide-layers',
+      type: 'trigger',
+      defaultOpen: true,
+      children: [
+        { label: '공연작품 관리', icon: 'i-lucide-drama', to: '/performances' },
+      ],
     })
   }
 
