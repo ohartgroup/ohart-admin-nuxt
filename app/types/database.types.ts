@@ -1122,6 +1122,85 @@ export type Database = {
           },
         ]
       }
+      performance_catalog: {
+        Row: {
+          activated: boolean
+          audience_age: string | null
+          created_at: string
+          creator_id: string | null
+          deleted: boolean
+          description: string | null
+          duration_minutes: number | null
+          genre: string | null
+          id: string
+          images: Json | null
+          performance_type:
+            | Database['public']['Enums']['performance_type']
+            | null
+          product_id: string
+          update_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated?: boolean
+          audience_age?: string | null
+          created_at?: string
+          creator_id?: string | null
+          deleted?: boolean
+          description?: string | null
+          duration_minutes?: number | null
+          genre?: string | null
+          id?: string
+          images?: Json | null
+          performance_type?:
+            | Database['public']['Enums']['performance_type']
+            | null
+          product_id: string
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated?: boolean
+          audience_age?: string | null
+          created_at?: string
+          creator_id?: string | null
+          deleted?: boolean
+          description?: string | null
+          duration_minutes?: number | null
+          genre?: string | null
+          id?: string
+          images?: Json | null
+          performance_type?:
+            | Database['public']['Enums']['performance_type']
+            | null
+          product_id?: string
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'performance_catalog_creator_id_fkey'
+            columns: ['creator_id']
+            isOneToOne: false
+            referencedRelation: 'creator_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'performance_catalog_product_id_fkey'
+            columns: ['product_id']
+            isOneToOne: true
+            referencedRelation: 'products'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'performance_catalog_update_user_id_fkey'
+            columns: ['update_user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       point_balances: {
         Row: {
           activated: boolean
@@ -1246,6 +1325,42 @@ export type Database = {
             columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      product_service_exposures: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          service_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          service_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'product_service_exposures_product_id_fkey'
+            columns: ['product_id']
+            isOneToOne: false
+            referencedRelation: 'products'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'product_service_exposures_service_id_fkey'
+            columns: ['service_id']
+            isOneToOne: false
+            referencedRelation: 'services'
             referencedColumns: ['id']
           },
         ]
@@ -1537,6 +1652,7 @@ export type Database = {
       payment_method: 'corporate_card' | 'bank_transfer' | 'invoice'
       payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded'
       payment_type: 'product_purchase' | 'other'
+      performance_type: 'direct' | 'brokered'
       point_transaction_type: 'earn' | 'redeem' | 'expire' | 'admin_adjustment'
       product_status: 'draft' | 'published' | 'blocked'
       tier_source: 'auto' | 'manual'
@@ -1705,6 +1821,7 @@ export const Constants = {
       payment_method: ['corporate_card', 'bank_transfer', 'invoice'],
       payment_status: ['pending', 'succeeded', 'failed', 'refunded'],
       payment_type: ['product_purchase', 'other'],
+      performance_type: ['direct', 'brokered'],
       point_transaction_type: ['earn', 'redeem', 'expire', 'admin_adjustment'],
       product_status: ['draft', 'published', 'blocked'],
       tier_source: ['auto', 'manual'],
