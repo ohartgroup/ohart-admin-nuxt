@@ -51,6 +51,8 @@ const draftGenre = ref('')
 const draftDurationMinutes = ref<number | null>(null)
 const draftDescription = ref('')
 const draftPerformanceType = ref<PerformanceType | undefined>(undefined)
+const draftImages = ref<string[]>([])
+const createFormRef = useTemplateRef('createFormRef')
 
 const startNewPerformance = () => {
   draftName.value = ''
@@ -63,6 +65,7 @@ const startNewPerformance = () => {
   draftDurationMinutes.value = null
   draftDescription.value = ''
   draftPerformanceType.value = undefined
+  draftImages.value = []
   showCreateForm.value = true
 }
 
@@ -73,7 +76,9 @@ const submitNewPerformance = async () => {
   }
   creating.value = true
   try {
-    await $fetch('/api/performances', {
+    // 등록 시점엔 상품이 아직 없어서 이미지는 폼에 로컬로만 쌓여 있다(PerformanceImageUploader).
+    // 상품을 먼저 만들고 productId를 받은 뒤에야 그 이미지들을 실제로 업로드할 수 있다.
+    const { productId } = await $fetch<{ created: true, productId: string }>('/api/performances', {
       method: 'POST',
       body: {
         name: draftName.value,
@@ -88,6 +93,7 @@ const submitNewPerformance = async () => {
         performanceType: draftPerformanceType.value,
       },
     })
+    await createFormRef.value?.flushPendingUploads(productId)
     toast.add({ title: '공연작품이 등록되었습니다.', color: 'success' })
     showCreateForm.value = false
     await loadItems()
@@ -117,6 +123,7 @@ const editGenre = ref('')
 const editDurationMinutes = ref<number | null>(null)
 const editDescription = ref('')
 const editPerformanceType = ref<PerformanceType | undefined>(undefined)
+const editImages = ref<string[]>([])
 
 const openEditForm = (row: PerformanceListItem) => {
   editingProductId.value = row.product_id
@@ -131,6 +138,7 @@ const openEditForm = (row: PerformanceListItem) => {
   editDurationMinutes.value = row.duration_minutes
   editDescription.value = row.description ?? ''
   editPerformanceType.value = row.performance_type ?? undefined
+  editImages.value = [...(row.images ?? [])]
   showEditForm.value = true
 }
 
@@ -155,6 +163,7 @@ const submitEditPerformance = async () => {
         durationMinutes: editDurationMinutes.value ?? undefined,
         description: editDescription.value || undefined,
         performanceType: editPerformanceType.value,
+        images: editImages.value,
       },
     })
     toast.add({ title: '공연작품이 수정되었습니다.', color: 'success' })
@@ -245,6 +254,7 @@ const columns = [
     >
       <div class="flex flex-col gap-4">
         <PerformanceForm
+          ref="createFormRef"
           v-model:name="draftName"
           v-model:price="draftPrice"
           v-model:category="draftCategory"
@@ -255,7 +265,9 @@ const columns = [
           v-model:duration-minutes="draftDurationMinutes"
           v-model:description="draftDescription"
           v-model:performance-type="draftPerformanceType"
+          v-model:images="draftImages"
           :services="services"
+          :product-id="null"
         />
 
         <div class="flex gap-2">
@@ -300,7 +312,9 @@ const columns = [
             v-model:duration-minutes="editDurationMinutes"
             v-model:description="editDescription"
             v-model:performance-type="editPerformanceType"
+            v-model:images="editImages"
             :services="services"
+            :product-id="editingProductId"
           />
 
           <div class="flex gap-2">
