@@ -11,6 +11,8 @@ export interface PerformanceListItem {
   audience_age: string | null
   genre: string | null
   duration_minutes: number | null
+  description: string | null
+  images: string[] | null
   performance_type: PerformanceType | null
   creator_id: string | null
   exposed_service_ids: string[]

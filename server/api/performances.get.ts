@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
   let query = client
     .from('performance_catalog')
-    .select('product_id, creator_id, audience_age, genre, duration_minutes, performance_type, products!inner(name, price, category, status, service_id)')
+    .select('product_id, creator_id, audience_age, genre, duration_minutes, description, images, performance_type, products!inner(name, price, category, status, service_id)')
     .eq('deleted', false)
     .order('created_at', { ascending: false })
 
@@ -55,6 +55,8 @@ export default defineEventHandler(async (event) => {
     audience_age: c.audience_age,
     genre: c.genre,
     duration_minutes: c.duration_minutes,
+    description: c.description,
+    images: c.images as string[] | null,
     performance_type: c.performance_type,
     creator_id: c.creator_id,
     exposed_service_ids: (allExposures ?? []).filter(e => e.product_id === c.product_id).map(e => e.service_id),
