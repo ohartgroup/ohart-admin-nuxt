@@ -4,12 +4,12 @@ import type { Json } from '~/types/database.types'
 interface UpdatePerformanceBody {
   name: string
   price: number
-  category?: string
+  categoryId?: string
   status?: ProductStatus
   serviceId: string
   exposedServiceIds: string[]
   audienceAge?: string
-  genre?: string
+  genreId?: string
   durationMinutes?: number
   description?: string
   images?: unknown
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
     .update({
       name: body.name,
       price: body.price,
-      category: body.category ?? null,
+      category_id: body.categoryId ?? null,
       status: body.status ?? 'draft',
       service_id: body.serviceId,
     })
@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
     .update({
       creator_id: body.creatorId ?? null,
       audience_age: body.audienceAge ?? null,
-      genre: body.genre ?? null,
+      genre_id: body.genreId ?? null,
       duration_minutes: body.durationMinutes ?? null,
       description: body.description ?? null,
       images: (body.images as Json) ?? null,

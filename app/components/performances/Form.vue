@@ -6,16 +6,18 @@ import type { PerformanceType } from '~/types/performance'
 // flushPendingUploads(productId)를 호출할 때 업로드된다 — PerformancesImageUploader 참고.
 const props = defineProps<{
   services: { id: string, name: string }[]
+  categories: { id: string, label: string }[]
+  genres: { id: string, label: string }[]
   productId: string | null
 }>()
 
 const name = defineModel<string>('name', { required: true })
 const price = defineModel<number>('price', { required: true })
-const category = defineModel<string>('category', { required: true })
+const categoryId = defineModel<string | undefined>('categoryId', { required: true })
 const serviceId = defineModel<string>('serviceId', { required: true })
 const exposedServiceIds = defineModel<string[]>('exposedServiceIds', { required: true })
 const audienceAge = defineModel<string>('audienceAge', { required: true })
-const genre = defineModel<string>('genre', { required: true })
+const genreId = defineModel<string | undefined>('genreId', { required: true })
 const durationMinutes = defineModel<number | null>('durationMinutes', { required: true })
 const description = defineModel<string>('description', { required: true })
 const performanceType = defineModel<PerformanceType | undefined>('performanceType', { required: true })
@@ -90,8 +92,10 @@ const toggleExposedService = (id: string) => {
         label="카테고리"
         class="flex-1"
       >
-        <UInput
-          v-model="category"
+        <USelect
+          v-model="categoryId"
+          :items="categories.map(c => ({ label: c.label, value: c.id }))"
+          placeholder="카테고리 선택"
           aria-label="카테고리"
           class="w-full"
         />
@@ -100,8 +104,10 @@ const toggleExposedService = (id: string) => {
         label="장르"
         class="flex-1"
       >
-        <UInput
-          v-model="genre"
+        <USelect
+          v-model="genreId"
+          :items="genres.map(g => ({ label: g.label, value: g.id }))"
+          placeholder="장르 선택"
           aria-label="장르"
           class="w-full"
         />

@@ -5,11 +5,11 @@ export interface PerformanceListItem {
   product_id: string
   name: string
   price: number
-  category: string | null
+  category_id: string | null
   status: ProductStatus
   service_id: string
   audience_age: string | null
-  genre: string | null
+  genre_id: string | null
   duration_minutes: number | null
   description: string | null
   images: string[] | null
