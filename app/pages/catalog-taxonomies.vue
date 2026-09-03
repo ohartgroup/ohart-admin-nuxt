@@ -125,7 +125,7 @@ const columns = [
     <UPageCard
       v-if="loaded && !isSuperAdmin"
       title="접근 권한이 없습니다"
-      description="카테고리/장르 관리는 Super Admin만 사용할 수 있습니다."
+      description="카테고리/장르/공연구분 관리는 Super Admin만 사용할 수 있습니다."
       icon="i-lucide-lock"
     />
 
