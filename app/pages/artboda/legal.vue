@@ -150,15 +150,14 @@ const previewDraft = () => {
     </AppDataTable>
 
     <UButton
-      v-if="!showCreateForm"
       label="신규 버전 등록"
       icon="i-lucide-plus"
       class="self-start"
       @click="startNewVersion"
     />
 
-    <UPageCard
-      v-else
+    <AppFormDialog
+      v-model:open="showCreateForm"
       title="신규 버전 등록"
     >
       <div class="flex flex-col gap-4">
@@ -219,7 +218,7 @@ const previewDraft = () => {
           />
         </div>
       </div>
-    </UPageCard>
+    </AppFormDialog>
 
     <USlideover
       v-model:open="showPreview"

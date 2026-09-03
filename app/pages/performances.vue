@@ -241,15 +241,14 @@ const columns = [
     </AppDataTable>
 
     <UButton
-      v-if="!showCreateForm"
       label="신규 등록"
       icon="i-lucide-plus"
       class="self-start"
       @click="startNewPerformance"
     />
 
-    <UPageCard
-      v-else
+    <AppFormDialog
+      v-model:open="showCreateForm"
       title="신규 공연작품 등록"
     >
       <div class="flex flex-col gap-4">
@@ -284,54 +283,51 @@ const columns = [
           />
         </div>
       </div>
-    </UPageCard>
+    </AppFormDialog>
 
-    <USlideover
+    <AppFormDialog
       v-model:open="showEditForm"
       title="공연작품 수정"
-      :ui="{ content: 'max-w-2xl' }"
     >
-      <template #body>
-        <div class="flex flex-col gap-4">
-          <UFormField label="상태">
-            <USelect
-              v-model="editStatus"
-              :items="[{ label: '초안', value: 'draft' }, { label: '게시', value: 'published' }, { label: '차단', value: 'blocked' }]"
-              aria-label="상태"
-            />
-          </UFormField>
-
-          <PerformancesForm
-            v-model:name="editName"
-            v-model:price="editPrice"
-            v-model:category="editCategory"
-            v-model:service-id="editServiceId"
-            v-model:exposed-service-ids="editExposedServiceIds"
-            v-model:audience-age="editAudienceAge"
-            v-model:genre="editGenre"
-            v-model:duration-minutes="editDurationMinutes"
-            v-model:description="editDescription"
-            v-model:performance-type="editPerformanceType"
-            v-model:images="editImages"
-            :services="services"
-            :product-id="editingProductId"
+      <div class="flex flex-col gap-4">
+        <UFormField label="상태">
+          <USelect
+            v-model="editStatus"
+            :items="[{ label: '초안', value: 'draft' }, { label: '게시', value: 'published' }, { label: '차단', value: 'blocked' }]"
+            aria-label="상태"
           />
+        </UFormField>
 
-          <div class="flex gap-2">
-            <UButton
-              label="저장"
-              :loading="saving"
-              @click="submitEditPerformance"
-            />
-            <UButton
-              label="취소"
-              variant="ghost"
-              color="neutral"
-              @click="showEditForm = false"
-            />
-          </div>
+        <PerformancesForm
+          v-model:name="editName"
+          v-model:price="editPrice"
+          v-model:category="editCategory"
+          v-model:service-id="editServiceId"
+          v-model:exposed-service-ids="editExposedServiceIds"
+          v-model:audience-age="editAudienceAge"
+          v-model:genre="editGenre"
+          v-model:duration-minutes="editDurationMinutes"
+          v-model:description="editDescription"
+          v-model:performance-type="editPerformanceType"
+          v-model:images="editImages"
+          :services="services"
+          :product-id="editingProductId"
+        />
+
+        <div class="flex gap-2">
+          <UButton
+            label="저장"
+            :loading="saving"
+            @click="submitEditPerformance"
+          />
+          <UButton
+            label="취소"
+            variant="ghost"
+            color="neutral"
+            @click="showEditForm = false"
+          />
         </div>
-      </template>
-    </USlideover>
+      </div>
+    </AppFormDialog>
   </div>
 </template>
