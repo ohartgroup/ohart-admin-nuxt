@@ -84,10 +84,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: updateError.message })
   }
 
-  await client.schema('admin').from('audit_logs').insert({
-    admin_account_id: adminAccountId,
+  await logAuditEvent(event, client, {
+    adminAccountId,
     action: 'performance_images_uploaded',
-    target_resource: { productId, count: uploadedUrls.length },
+    targetServiceId: product.service_id,
+    targetResource: { productId, count: uploadedUrls.length },
   })
 
   return { images: nextImages }

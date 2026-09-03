@@ -113,10 +113,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: insertExposureError.message })
   }
 
-  await client.schema('admin').from('audit_logs').insert({
-    admin_account_id: adminAccountId,
+  await logAuditEvent(event, client, {
+    adminAccountId,
     action: 'performance_catalog_updated',
-    target_resource: { productId, serviceId: body.serviceId, exposedServiceIds },
+    targetServiceId: body.serviceId,
+    targetResource: { productId, serviceId: body.serviceId, exposedServiceIds },
   })
 
   return { updated: true, productId }

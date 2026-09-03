@@ -13,9 +13,26 @@ interface AuditLog {
 }
 
 const { isSuperAdmin, loaded } = useAdminAuth()
+const toast = useToast()
 
 const logs = ref<AuditLog[]>([])
 const loading = ref(false)
+const showResourceModal = ref(false)
+const selectedResource = ref<Record<string, unknown> | null>(null)
+const selectedAction = ref('')
+
+const openResource = (log: AuditLog) => {
+  selectedResource.value = log.targetResource
+  selectedAction.value = log.action
+  showResourceModal.value = true
+}
+
+const selectedResourceJson = computed(() => selectedResource.value ? JSON.stringify(selectedResource.value, null, 2) : '')
+
+const copyResource = async () => {
+  await navigator.clipboard.writeText(selectedResourceJson.value)
+  toast.add({ title: '복사되었습니다.', color: 'success' })
+}
 
 const loadLogs = async () => {
   loading.value = true
@@ -87,14 +104,23 @@ const columns = [
         </template>
 
         <template #targetServiceName-cell="{ row }">
-          <span class="text-sm">{{ row.original.targetServiceName ?? '-' }}</span>
+          <span class="text-sm">{{ row.original.targetServiceName ?? '통합관리자' }}</span>
         </template>
 
         <template #targetResource-cell="{ row }">
-          <span
-            class="text-xs text-muted font-mono truncate block max-w-64"
+          <button
+            v-if="row.original.targetResource"
+            type="button"
+            class="text-xs text-muted font-mono truncate block max-w-64 text-left hover:underline cursor-pointer"
             :title="resourcePreview(row.original.targetResource)"
-          >{{ resourcePreview(row.original.targetResource) }}</span>
+            @click="openResource(row.original)"
+          >
+            {{ resourcePreview(row.original.targetResource) }}
+          </button>
+          <span
+            v-else
+            class="text-xs text-muted"
+          >-</span>
         </template>
 
         <template #ipAddress-cell="{ row }">
@@ -102,5 +128,26 @@ const columns = [
         </template>
       </AppDataTable>
     </template>
+
+    <UModal
+      v-model:open="showResourceModal"
+      :title="selectedAction"
+      description="대상 리소스"
+    >
+      <template #body>
+        <div class="relative">
+          <UButton
+            icon="i-lucide-copy"
+            size="xs"
+            variant="outline"
+            color="neutral"
+            aria-label="복사"
+            class="absolute top-2 right-2"
+            @click="copyResource"
+          />
+          <pre class="text-xs font-mono bg-elevated rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all">{{ selectedResourceJson }}</pre>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
