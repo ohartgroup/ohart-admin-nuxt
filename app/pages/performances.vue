@@ -7,6 +7,7 @@ const toast = useToast()
 const supabase = useSupabaseClient()
 
 const statusLabels: Record<ProductStatus, string> = { draft: '초안', published: '게시', blocked: '차단' }
+const statusColors: Record<ProductStatus, 'neutral' | 'success' | 'warning'> = { draft: 'neutral', published: 'success', blocked: 'warning' }
 
 const services = ref<{ id: string, name: string }[]>([])
 const serviceName = (id: string) => services.value.find(s => s.id === id)?.name ?? id
@@ -300,6 +301,7 @@ const columns = [
         <UBadge
           v-else
           :label="statusLabels[row.original.status as ProductStatus]"
+          :color="statusColors[row.original.status as ProductStatus]"
           variant="subtle"
         />
       </template>
