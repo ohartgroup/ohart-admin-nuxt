@@ -1,4 +1,3 @@
-export type PerformanceType = 'direct' | 'brokered'
 export type ProductStatus = 'draft' | 'published' | 'blocked'
 export type AudienceAgeRange = 'all' | '10s' | '20s' | '30s' | '40s' | '50s' | '60s' | '70s_plus'
 
@@ -15,7 +14,7 @@ export interface PerformanceListItem {
   duration_minutes: number | null
   description: string | null
   images: string[] | null
-  performance_type: PerformanceType | null
+  performance_type_id: string | null
   creator_id: string | null
   exposed_service_ids: string[]
 }

@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { AudienceAgeRange, PerformanceListItem, PerformanceType, ProductStatus } from '~/types/performance'
+import type { AudienceAgeRange, PerformanceListItem, ProductStatus } from '~/types/performance'
 
 definePageMeta({ layout: 'default', title: '공연작품 관리' })
 
 const toast = useToast()
 const supabase = useSupabaseClient()
 
-const performanceTypeLabels: Record<PerformanceType, string> = { direct: '직접제작', brokered: '중개' }
 const statusLabels: Record<ProductStatus, string> = { draft: '초안', published: '게시', blocked: '차단' }
 
 const services = ref<{ id: string, name: string }[]>([])
@@ -14,6 +13,8 @@ const serviceName = (id: string) => services.value.find(s => s.id === id)?.name 
 
 const categories = ref<{ id: string, label: string }[]>([])
 const genres = ref<{ id: string, label: string }[]>([])
+const performanceTypes = ref<{ id: string, label: string }[]>([])
+const performanceTypeName = (id: string | null) => performanceTypes.value.find(t => t.id === id)?.label ?? '-'
 
 const items = ref<PerformanceListItem[]>([])
 const loading = ref(false)
@@ -25,12 +26,13 @@ const loadServices = async () => {
   services.value = data ?? []
 }
 
-// 카테고리/장르 선택지 — /catalog-taxonomies(super_admin 전용 관리화면)에서 관리되는 값을
+// 카테고리/장르/공연구분 선택지 — /catalog-taxonomies(super_admin 전용 관리화면)에서 관리되는 값을
 // public_read RLS로 그대로 읽어온다(서비스 목록과 동일한 패턴).
 const loadTaxonomies = async () => {
   const { data } = await supabase.from('catalog_taxonomies').select('id, type, label').eq('deleted', false).eq('activated', true).order('sort_order').order('label')
   categories.value = (data ?? []).filter(t => t.type === 'category').map(t => ({ id: t.id, label: t.label }))
   genres.value = (data ?? []).filter(t => t.type === 'genre').map(t => ({ id: t.id, label: t.label }))
+  performanceTypes.value = (data ?? []).filter(t => t.type === 'performance_type').map(t => ({ id: t.id, label: t.label }))
 }
 
 const loadItems = async () => {
@@ -68,7 +70,7 @@ const draftAudienceAge = ref<AudienceAgeRange[]>([])
 const draftGenreId = ref<string | undefined>(undefined)
 const draftDurationMinutes = ref<number | null>(null)
 const draftDescription = ref('')
-const draftPerformanceType = ref<PerformanceType | undefined>(undefined)
+const draftPerformanceTypeId = ref<string | undefined>(undefined)
 const draftImages = ref<string[]>([])
 const createFormRef = useTemplateRef('createFormRef')
 
@@ -82,7 +84,7 @@ const startNewPerformance = () => {
   draftGenreId.value = undefined
   draftDurationMinutes.value = null
   draftDescription.value = ''
-  draftPerformanceType.value = undefined
+  draftPerformanceTypeId.value = undefined
   draftImages.value = []
   showCreateForm.value = true
 }
@@ -108,7 +110,7 @@ const submitNewPerformance = async () => {
         genreId: draftGenreId.value,
         durationMinutes: draftDurationMinutes.value ?? undefined,
         description: draftDescription.value || undefined,
-        performanceType: draftPerformanceType.value,
+        performanceTypeId: draftPerformanceTypeId.value,
       },
     })
     await createFormRef.value?.flushPendingUploads(productId)
@@ -140,7 +142,7 @@ const editAudienceAge = ref<AudienceAgeRange[]>([])
 const editGenreId = ref<string | undefined>(undefined)
 const editDurationMinutes = ref<number | null>(null)
 const editDescription = ref('')
-const editPerformanceType = ref<PerformanceType | undefined>(undefined)
+const editPerformanceTypeId = ref<string | undefined>(undefined)
 const editImages = ref<string[]>([])
 const editFormRef = useTemplateRef('editFormRef')
 
@@ -156,7 +158,7 @@ const openEditForm = (row: PerformanceListItem) => {
   editGenreId.value = row.genre_id ?? undefined
   editDurationMinutes.value = row.duration_minutes
   editDescription.value = row.description ?? ''
-  editPerformanceType.value = row.performance_type ?? undefined
+  editPerformanceTypeId.value = row.performance_type_id ?? undefined
   editImages.value = [...(row.images ?? [])]
   showEditForm.value = true
 }
@@ -184,7 +186,7 @@ const submitEditPerformance = async () => {
         genreId: editGenreId.value,
         durationMinutes: editDurationMinutes.value ?? undefined,
         description: editDescription.value || undefined,
-        performanceType: editPerformanceType.value,
+        performanceTypeId: editPerformanceTypeId.value,
         images: editImages.value,
       },
     })
@@ -229,7 +231,7 @@ const columns = [
   { accessorKey: 'name', header: '이름' },
   { accessorKey: 'service_id', header: '소유 서비스' },
   { id: 'exposed', header: '노출 서비스' },
-  { accessorKey: 'performance_type', header: '공연구분' },
+  { accessorKey: 'performance_type_id', header: '공연구분' },
   { accessorKey: 'status', header: '상태' },
   { accessorKey: 'actions', header: '작업' },
 ]
@@ -286,8 +288,8 @@ const columns = [
           />
         </div>
       </template>
-      <template #performance_type-cell="{ row }">
-        <span class="text-sm">{{ row.original.performance_type ? performanceTypeLabels[row.original.performance_type as PerformanceType] : '-' }}</span>
+      <template #performance_type_id-cell="{ row }">
+        <span class="text-sm">{{ performanceTypeName(row.original.performance_type_id) }}</span>
       </template>
       <template #status-cell="{ row }">
         <UBadge
@@ -336,11 +338,12 @@ const columns = [
           v-model:genre-id="draftGenreId"
           v-model:duration-minutes="draftDurationMinutes"
           v-model:description="draftDescription"
-          v-model:performance-type="draftPerformanceType"
+          v-model:performance-type-id="draftPerformanceTypeId"
           v-model:images="draftImages"
           :services="services"
           :categories="categories"
           :genres="genres"
+          :performance-types="performanceTypes"
           :product-id="null"
         />
 
@@ -384,11 +387,12 @@ const columns = [
           v-model:genre-id="editGenreId"
           v-model:duration-minutes="editDurationMinutes"
           v-model:description="editDescription"
-          v-model:performance-type="editPerformanceType"
+          v-model:performance-type-id="editPerformanceTypeId"
           v-model:images="editImages"
           :services="services"
           :categories="categories"
           :genres="genres"
+          :performance-types="performanceTypes"
           :product-id="editingProductId"
         />
 

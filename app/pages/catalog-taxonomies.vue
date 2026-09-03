@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { Database } from '~/types/database.types'
 
-definePageMeta({ layout: 'default', title: '카테고리/장르 관리' })
+definePageMeta({ layout: 'default', title: '카테고리/장르/공연구분 관리' })
 
 type Taxonomy = Database['public']['Tables']['catalog_taxonomies']['Row']
-type TaxonomyType = 'category' | 'genre'
+type TaxonomyType = 'category' | 'genre' | 'performance_type'
 
-const typeLabels: Record<TaxonomyType, string> = { category: '카테고리', genre: '장르' }
+const typeLabels: Record<TaxonomyType, string> = { category: '카테고리', genre: '장르', performance_type: '공연구분' }
 
 const supabase = useSupabaseClient<Database>()
 const { isSuperAdmin, loaded } = useAdminAuth()
@@ -131,7 +131,7 @@ const columns = [
 
     <template v-else>
       <p class="text-sm text-muted">
-        공연작품 등록 폼의 카테고리·장르 선택지를 관리합니다. artboda·stub·예술학교가 공통으로 사용합니다.
+        공연작품 등록 폼의 카테고리·장르·공연구분 선택지를 관리합니다. artboda·stub·예술학교가 공통으로 사용합니다.
       </p>
 
       <div class="flex items-center justify-between">
