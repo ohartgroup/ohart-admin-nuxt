@@ -29,5 +29,6 @@ export const requireServiceAdmin = async (event: H3Event, serviceSlug: string) =
     throw createError({ statusCode: 403, statusMessage: 'Forbidden', message: `${serviceSlug} service_admin 권한이 필요합니다.` })
   }
 
-  return { client, adminAccountId: account.id }
+  // 감사로그 target_service_id로 그대로 쓸 수 있게 호출부에 돌려준다(매번 재조회하지 않도록).
+  return { client, adminAccountId: account.id, serviceId: service?.id ?? null }
 }

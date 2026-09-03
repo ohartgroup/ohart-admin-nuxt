@@ -1,7 +1,7 @@
 // 이미지 순서 변경 전용 — 배열 순서 = 노출 순서 = 첫 번째가 대표 이미지라서,
 // 클라이언트가 재정렬한 최종 URL 배열을 그대로 덮어쓰기만 하면 된다(Storage 쓰기는 없음).
 export default defineEventHandler(async (event) => {
-  const { client, isSuperAdmin, serviceIds } = await requireCatalogAdmin(event)
+  const { client, adminAccountId, isSuperAdmin, serviceIds } = await requireCatalogAdmin(event)
   const productId = getRouterParam(event, 'productId')
   if (!productId) {
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'productId는 필수입니다.' })
@@ -37,6 +37,13 @@ export default defineEventHandler(async (event) => {
   if (updateError) {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: updateError.message })
   }
+
+  await logAuditEvent(event, client, {
+    adminAccountId,
+    action: 'performance_images_reordered',
+    targetServiceId: product.service_id,
+    targetResource: { productId },
+  })
 
   return { images: body.images }
 })

@@ -3,7 +3,7 @@ interface UpdateStatusBody {
 }
 
 export default defineEventHandler(async (event) => {
-  const { client, adminAccountId } = await requireServiceAdmin(event, 'artboda')
+  const { client, adminAccountId, serviceId } = await requireServiceAdmin(event, 'artboda')
   const id = getRouterParam(event, 'id')
   const body = await readBody<UpdateStatusBody>(event)
   if (!id || !body?.status) {
@@ -16,10 +16,11 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: error.message })
   }
 
-  await client.schema('admin').from('audit_logs').insert({
-    admin_account_id: adminAccountId,
+  await logAuditEvent(event, client, {
+    adminAccountId,
     action: 'artboda_contract_status_changed',
-    target_resource: { contractId: id, status: body.status },
+    targetServiceId: serviceId,
+    targetResource: { contractId: id, status: body.status },
   })
 
   return { updated: true }

@@ -1,7 +1,7 @@
 // 이미지 삭제 — performance_catalog.images 배열에서 제거하고, 실제 Storage 파일도 같이
 // 지워서(orphan 방지) 아무도 참조하지 않는 파일이 버킷에 쌓이지 않게 한다.
 export default defineEventHandler(async (event) => {
-  const { client, isSuperAdmin, serviceIds } = await requireCatalogAdmin(event)
+  const { client, adminAccountId, isSuperAdmin, serviceIds } = await requireCatalogAdmin(event)
   const productId = getRouterParam(event, 'productId')
   if (!productId) {
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'productId는 필수입니다.' })
@@ -60,6 +60,13 @@ export default defineEventHandler(async (event) => {
     const path = body.url.slice(markerIndex + pathMarker.length)
     await client.storage.from('performance-images').remove([path])
   }
+
+  await logAuditEvent(event, client, {
+    adminAccountId,
+    action: 'performance_image_deleted',
+    targetServiceId: product.service_id,
+    targetResource: { productId, url: body.url },
+  })
 
   return { images: nextImages }
 })

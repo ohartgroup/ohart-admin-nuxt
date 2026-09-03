@@ -13,7 +13,7 @@ interface CreateVersionBody {
 // PUT/PATCH를 별도로 두지 않는다. version 번호는 기존 최대값+1로 서버가 계산해서
 // 클라이언트가 번호를 잘못 넣어 충돌하는 경우를 없앤다.
 export default defineEventHandler(async (event) => {
-  const { client, adminAccountId } = await requireServiceAdmin(event, 'artboda')
+  const { client, adminAccountId, serviceId } = await requireServiceAdmin(event, 'artboda')
   const body = await readBody<CreateVersionBody>(event)
 
   if (!body?.docType || !body?.effectiveDate || !body?.title || !body?.eyebrow || !body?.blocks?.length) {
@@ -53,10 +53,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await client.schema('admin').from('audit_logs').insert({
-    admin_account_id: adminAccountId,
+  await logAuditEvent(event, client, {
+    adminAccountId,
     action: 'artboda_legal_document_created',
-    target_resource: { docType: body.docType, version: nextVersion, effectiveDate: body.effectiveDate },
+    targetServiceId: serviceId,
+    targetResource: { docType: body.docType, version: nextVersion, effectiveDate: body.effectiveDate },
   })
 
   return { created: true, version: nextVersion }
