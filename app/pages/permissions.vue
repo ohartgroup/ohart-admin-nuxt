@@ -353,6 +353,7 @@ const tabItems = [
                       variant="link"
                       color="neutral"
                       class="ml-1 p-0"
+                      :aria-label="`${roleLabels[role.roleType] ?? role.roleType} 권한 복구`"
                       @click="restore(row.original, role)"
                     />
                     <UButton
@@ -362,6 +363,7 @@ const tabItems = [
                       variant="link"
                       color="neutral"
                       class="ml-1 p-0"
+                      :aria-label="`${roleLabels[role.roleType] ?? role.roleType} 권한 회수`"
                       @click="revoke(row.original, role)"
                     />
                   </UBadge>
