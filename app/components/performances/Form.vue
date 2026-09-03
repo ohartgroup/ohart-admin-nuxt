@@ -104,7 +104,7 @@ const toggleExposedService = (id: string) => {
             #content-top
           >
             <p class="px-2 py-1.5 text-xs text-muted">
-              등록된 카테고리가 없습니다 — 카테고리/장르 관리에서 추가하세요
+              등록된 카테고리가 없습니다
             </p>
           </template>
         </USelect>
@@ -125,7 +125,7 @@ const toggleExposedService = (id: string) => {
             #content-top
           >
             <p class="px-2 py-1.5 text-xs text-muted">
-              등록된 장르가 없습니다 — 카테고리/장르 관리에서 추가하세요
+              등록된 장르가 없습니다
             </p>
           </template>
         </USelect>
