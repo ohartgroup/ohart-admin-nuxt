@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import type { Database } from '~/types/database.types'
+
 definePageMeta({ layout: 'default', title: '서비스 권한 관리' })
+
+type Service = Database['public']['Tables']['services']['Row']
 
 interface RoleAssignment {
   id: string
@@ -23,6 +27,7 @@ const supabase = useSupabaseClient()
 
 const accounts = ref<ActiveAccount[]>([])
 const services = ref<{ label: string, value: string }[]>([])
+const serviceList = ref<Service[]>([])
 const loading = ref(false)
 const grantForm = ref<Record<string, { roleType: string, serviceId?: string }>>({})
 const newServiceName = ref('')
@@ -30,6 +35,8 @@ const newServiceSlug = ref('')
 const creatingService = ref(false)
 // 회수된(deleted=true) 권한도 같이 불러와서 보고 되돌릴 수 있게 하는 토글.
 const showRevokedRoles = ref(false)
+// 오작동 삭제 대비 — 켜면 deleted=true인 서비스도 같이 불러와서 복구할 수 있게 한다.
+const showDeletedServices = ref(false)
 
 const roleOptions = [
   { label: 'Super Admin', value: 'super_admin' },
@@ -57,13 +64,26 @@ const loadAccounts = async () => {
 
 watch(showRevokedRoles, loadAccounts)
 
+// 권한 부여 드롭다운용 — 토글 상태와 무관하게 항상 활성/비삭제 서비스만.
 const loadServices = async () => {
   const { data } = await supabase.from('services').select('id, name').eq('deleted', false).order('name')
   services.value = (data ?? []).map(s => ({ label: s.name, value: s.id }))
 }
 
+// 서비스 목록 표시용 — showDeletedServices 토글에 따라 삭제된 서비스도 같이 불러온다.
+const loadServiceList = async () => {
+  let query = supabase.from('services').select('*').order('name')
+  if (!showDeletedServices.value) {
+    query = query.eq('deleted', false)
+  }
+  const { data } = await query
+  serviceList.value = data ?? []
+}
+
+watch(showDeletedServices, loadServiceList)
+
 onMounted(async () => {
-  await Promise.all([loadAccounts(), loadServices()])
+  await Promise.all([loadAccounts(), loadServices(), loadServiceList()])
 })
 
 // public.services는 RLS(admin_write)로 super_admin에게 이미 직접 insert가 열려있어서
@@ -86,7 +106,53 @@ const createService = async () => {
   newServiceName.value = ''
   newServiceSlug.value = ''
   toast.add({ title: '서비스가 등록되었습니다.', color: 'success' })
-  await loadServices()
+  await Promise.all([loadServices(), loadServiceList()])
+}
+
+const toggleServiceActive = async (service: Service) => {
+  const { error } = await supabase
+    .from('services')
+    .update({ activated: !service.activated })
+    .eq('id', service.id)
+
+  if (error) {
+    toast.add({ title: '변경에 실패했습니다.', description: error.message, color: 'error' })
+    return
+  }
+  await Promise.all([loadServices(), loadServiceList()])
+}
+
+// 관리자 화면 삭제는 실제 row를 지우지 않고 deleted=true로만 처리한다(soft delete) —
+// 이미 이 서비스로 배정된 role_assignments/products 등이 참조 중일 수 있어서
+// 실제로 지우면 참조 무결성이 깨진다.
+const deleteService = async (service: Service) => {
+  if (!confirm(`'${service.name}'을(를) 삭제할까요? 이 서비스로 배정된 권한/데이터가 있다면 그대로 남아있을 수 있습니다.`)) {
+    return
+  }
+  const { error } = await supabase
+    .from('services')
+    .update({ deleted: true })
+    .eq('id', service.id)
+
+  if (error) {
+    toast.add({ title: '삭제에 실패했습니다.', description: error.message, color: 'error' })
+    return
+  }
+  await Promise.all([loadServices(), loadServiceList()])
+}
+
+const restoreService = async (service: Service) => {
+  const { error } = await supabase
+    .from('services')
+    .update({ deleted: false })
+    .eq('id', service.id)
+
+  if (error) {
+    toast.add({ title: '복구에 실패했습니다.', description: error.message, color: 'error' })
+    return
+  }
+  toast.add({ title: '복구되었습니다.', color: 'success' })
+  await Promise.all([loadServices(), loadServiceList()])
 }
 
 const grant = async (account: ActiveAccount) => {
@@ -113,6 +179,13 @@ const restore = async (account: ActiveAccount, role: RoleAssignment) => {
   toast.add({ title: '권한이 복구되었습니다.', color: 'success' })
   await loadAccounts()
 }
+
+const serviceColumns = [
+  { accessorKey: 'name', header: '이름' },
+  { accessorKey: 'slug', header: 'slug' },
+  { accessorKey: 'status', header: '상태' },
+  { accessorKey: 'actions', header: '' },
+]
 </script>
 
 <template>
@@ -147,6 +220,67 @@ const restore = async (account: ActiveAccount, role: RoleAssignment) => {
           />
         </div>
       </UPageCard>
+
+      <AppDataTable
+        :data="serviceList"
+        :columns="serviceColumns"
+        :search-keys="['name', 'slug']"
+        search-placeholder="서비스명/slug 검색"
+      >
+        <template #filters>
+          <UCheckbox
+            v-model="showDeletedServices"
+            label="삭제된 서비스 보기"
+          />
+        </template>
+
+        <template #status-cell="{ row }">
+          <UBadge
+            v-if="row.original.deleted"
+            label="삭제됨"
+            color="error"
+            variant="subtle"
+          />
+          <UBadge
+            v-else
+            :label="row.original.activated ? '사용' : '미사용'"
+            :color="row.original.activated ? 'success' : 'neutral'"
+            variant="subtle"
+          />
+        </template>
+
+        <template #actions-cell="{ row }">
+          <UButton
+            v-if="row.original.deleted"
+            label="복구"
+            icon="i-lucide-rotate-ccw"
+            size="xs"
+            variant="soft"
+            color="primary"
+            @click="restoreService(row.original)"
+          />
+          <div
+            v-else
+            class="flex gap-1"
+          >
+            <UButton
+              :label="row.original.activated ? '비활성화' : '활성화'"
+              size="xs"
+              variant="soft"
+              :color="row.original.activated ? 'neutral' : 'primary'"
+              @click="toggleServiceActive(row.original)"
+            />
+            <UButton
+              label="삭제"
+              icon="i-lucide-trash-2"
+              size="xs"
+              variant="ghost"
+              color="error"
+              @click="deleteService(row.original)"
+            />
+          </div>
+        </template>
+      </AppDataTable>
 
       <div class="flex justify-end">
         <UCheckbox
