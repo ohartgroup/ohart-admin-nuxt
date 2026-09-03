@@ -7,7 +7,7 @@ export const useServiceAccess = (slug: string) => {
   const serviceId = ref<string | undefined>(undefined)
 
   onMounted(async () => {
-    const { data } = await supabase.from('services').select('id').eq('slug', slug).maybeSingle()
+    const { data } = await supabase.from('services').select('id').eq('slug', slug).eq('deleted', false).maybeSingle()
     serviceId.value = data?.id
   })
 

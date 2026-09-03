@@ -15,11 +15,14 @@ const newName = ref('')
 const newCode = ref('')
 const newParentId = ref<string | undefined>(undefined)
 const creating = ref(false)
+// 오작동 삭제 대비 — 켜면 deleted=true인 부서도 같이 불러와서 복구할 수 있게 한다.
+const showDeleted = ref(false)
 
 // 최상위 그룹만 상위부서로 선택 가능하게 한다(2단계까지만 지원, 3단계 중첩 방지).
+// 삭제된 그룹은 showDeleted 토글과 무관하게 항상 선택지에서 제외한다.
 const groupOptions = computed(() =>
   departments.value
-    .filter(d => !d.parent_id)
+    .filter(d => !d.parent_id && !d.deleted)
     .map(d => ({ label: d.name, value: d.id })),
 )
 
@@ -35,17 +38,23 @@ const filteredDepartments = computed(() => {
 
 const loadDepartments = async () => {
   loading.value = true
-  const { data } = await supabase
+  let query = supabase
     .schema('admin')
     .from('departments')
     .select('*')
-    .eq('deleted', false)
     .order('created_at')
+
+  if (!showDeleted.value) {
+    query = query.eq('deleted', false)
+  }
+
+  const { data } = await query
   departments.value = data ?? []
   loading.value = false
 }
 
 onMounted(loadDepartments)
+watch(showDeleted, loadDepartments)
 
 const createDepartment = async () => {
   if (!newName.value.trim()) {
@@ -79,6 +88,41 @@ const toggleActive = async (department: Department) => {
     toast.add({ title: '변경에 실패했습니다.', description: error.message, color: 'error' })
     return
   }
+  await loadDepartments()
+}
+
+// 관리자 화면 삭제는 실제 row를 지우지 않고 deleted=true로만 처리한다(soft delete) —
+// 이미 배정된 관리자(admin_accounts.department_id)나 하위 부서(parent_id)가 이 부서를
+// 참조 중일 수 있어서 실제로 지우면 참조 무결성이 깨진다.
+const deleteDepartment = async (department: Department) => {
+  if (!confirm(`'${department.name}'을(를) 삭제할까요? 배정된 관리자나 하위 부서가 있다면 그대로 남아있을 수 있습니다.`)) {
+    return
+  }
+  const { error } = await supabase
+    .schema('admin')
+    .from('departments')
+    .update({ deleted: true })
+    .eq('id', department.id)
+
+  if (error) {
+    toast.add({ title: '삭제에 실패했습니다.', description: error.message, color: 'error' })
+    return
+  }
+  await loadDepartments()
+}
+
+const restoreDepartment = async (department: Department) => {
+  const { error } = await supabase
+    .schema('admin')
+    .from('departments')
+    .update({ deleted: false })
+    .eq('id', department.id)
+
+  if (error) {
+    toast.add({ title: '복구에 실패했습니다.', description: error.message, color: 'error' })
+    return
+  }
+  toast.add({ title: '복구되었습니다.', color: 'success' })
   await loadDepartments()
 }
 
@@ -159,6 +203,10 @@ const columns = [
             size="sm"
             @click="filterGroupId = undefined"
           />
+          <UCheckbox
+            v-model="showDeleted"
+            label="삭제된 부서 보기"
+          />
         </template>
 
         <template #parent-cell="{ row }">
@@ -167,6 +215,13 @@ const columns = [
 
         <template #active-cell="{ row }">
           <UBadge
+            v-if="row.original.deleted"
+            label="삭제됨"
+            color="error"
+            variant="subtle"
+          />
+          <UBadge
+            v-else
             :label="row.original.active ? '사용' : '미사용'"
             :color="row.original.active ? 'success' : 'neutral'"
             variant="subtle"
@@ -175,12 +230,34 @@ const columns = [
 
         <template #actions-cell="{ row }">
           <UButton
-            :label="row.original.active ? '비활성화' : '활성화'"
+            v-if="row.original.deleted"
+            label="복구"
+            icon="i-lucide-rotate-ccw"
             size="xs"
             variant="soft"
-            :color="row.original.active ? 'neutral' : 'primary'"
-            @click="toggleActive(row.original)"
+            color="primary"
+            @click="restoreDepartment(row.original)"
           />
+          <div
+            v-else
+            class="flex gap-1"
+          >
+            <UButton
+              :label="row.original.active ? '비활성화' : '활성화'"
+              size="xs"
+              variant="soft"
+              :color="row.original.active ? 'neutral' : 'primary'"
+              @click="toggleActive(row.original)"
+            />
+            <UButton
+              label="삭제"
+              icon="i-lucide-trash-2"
+              size="xs"
+              variant="ghost"
+              color="error"
+              @click="deleteDepartment(row.original)"
+            />
+          </div>
         </template>
       </AppDataTable>
     </template>

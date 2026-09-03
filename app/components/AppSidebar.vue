@@ -36,14 +36,19 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
   // 공용: 특정 서비스에 종속되지 않고 여러 서비스를 가로지르는 화면. 서비스명을 하드코딩하지
   // 않고 "service_admin으로 배정된 서비스가 하나라도 있으면" 노출한다(useCatalogAccess).
   if (hasCatalogAccess.value) {
+    const catalogGroupChildren: NavigationMenuItem[] = [
+      { label: '공연작품 관리', icon: 'i-lucide-drama', to: '/performances' },
+    ]
+    // 카테고리/장르는 전사 공통 마스터 데이터라 super_admin만 관리(RLS admin_write와 동일 기준).
+    if (isSuperAdmin.value) {
+      catalogGroupChildren.push({ label: '카테고리/장르 관리', icon: 'i-lucide-tags', to: '/catalog-taxonomies' })
+    }
     primary.push({
       label: '공용',
       icon: 'i-lucide-layers',
       type: 'trigger',
       defaultOpen: true,
-      children: [
-        { label: '공연작품 관리', icon: 'i-lucide-drama', to: '/performances' },
-      ],
+      children: catalogGroupChildren,
     })
   }
 

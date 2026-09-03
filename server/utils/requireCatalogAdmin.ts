@@ -17,6 +17,7 @@ export const requireCatalogAdmin = async (event: H3Event) => {
     .from('admin_accounts')
     .select('id, status, role_assignments!role_assignments_admin_account_id_fkey(role_type, service_id)')
     .eq('user_id', user.sub)
+    .eq('deleted', false)
     .eq('role_assignments.deleted', false)
     .maybeSingle()
 

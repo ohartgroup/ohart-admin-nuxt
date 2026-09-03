@@ -39,6 +39,7 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
       .from('admin_accounts')
       .select('*, department:departments!admin_accounts_department_id_fkey(*), role_assignments!role_assignments_admin_account_id_fkey(*)')
       .eq('user_id', user.value.sub as string)
+      .eq('deleted', false)
       .eq('role_assignments.deleted', false)
       .maybeSingle()
 
@@ -65,6 +66,7 @@ export const useAdminSessionStore = defineStore('adminSession', () => {
       .from('departments')
       .select('id')
       .eq('manager_admin_account_id', account.value.id)
+      .eq('deleted', false)
     managedDepartmentIds.value = (data ?? []).map(d => d.id)
   }
 

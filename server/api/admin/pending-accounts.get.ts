@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
     .from('admin_accounts')
     .select('id, status, created_at, user_id')
     .in('status', ['pending', 'suspended'])
+    .eq('deleted', false)
     .order('created_at', { ascending: true })
 
   if (accountsError) {
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
     .from('users')
     .select('id, email, display_name')
     .in('id', accounts.map(a => a.user_id))
+    .eq('deleted', false)
 
   if (usersError) {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: usersError.message })
