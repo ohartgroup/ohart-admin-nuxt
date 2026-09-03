@@ -91,10 +91,12 @@ const toggleExposedService = (id: string) => {
       <UFormField
         label="카테고리"
         class="flex-1"
+        :help="categories.length === 0 ? '등록된 카테고리가 없습니다 — 카테고리/장르 관리에서 추가하세요' : undefined"
       >
         <USelect
           v-model="categoryId"
           :items="categories.map(c => ({ label: c.label, value: c.id }))"
+          :disabled="categories.length === 0"
           placeholder="카테고리 선택"
           aria-label="카테고리"
           class="w-full"
@@ -103,10 +105,12 @@ const toggleExposedService = (id: string) => {
       <UFormField
         label="장르"
         class="flex-1"
+        :help="genres.length === 0 ? '등록된 장르가 없습니다 — 카테고리/장르 관리에서 추가하세요' : undefined"
       >
         <USelect
           v-model="genreId"
           :items="genres.map(g => ({ label: g.label, value: g.id }))"
+          :disabled="genres.length === 0"
           placeholder="장르 선택"
           aria-label="장르"
           class="w-full"
