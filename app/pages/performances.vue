@@ -17,6 +17,8 @@ const genres = ref<{ id: string, label: string }[]>([])
 
 const items = ref<PerformanceListItem[]>([])
 const loading = ref(false)
+// 오작동 삭제 대비 — 켜면 deleted=true인 공연작품도 같이 불러와서 복구할 수 있게 한다.
+const showDeleted = ref(false)
 
 const loadServices = async () => {
   const { data } = await supabase.from('services').select('id, name').eq('deleted', false)
@@ -34,7 +36,9 @@ const loadTaxonomies = async () => {
 const loadItems = async () => {
   loading.value = true
   try {
-    items.value = await $fetch<PerformanceListItem[]>('/api/performances')
+    items.value = await $fetch<PerformanceListItem[]>('/api/performances', {
+      query: { includeDeleted: showDeleted.value ? 'true' : undefined },
+    })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : '목록을 불러오지 못했습니다.'
     toast.add({ title: message, color: 'error' })
@@ -42,6 +46,8 @@ const loadItems = async () => {
     loading.value = false
   }
 }
+
+watch(showDeleted, loadItems)
 
 onMounted(() => {
   loadServices()
@@ -189,12 +195,39 @@ const submitEditPerformance = async () => {
   }
 }
 
+// 관리자 화면 삭제는 실제 row를 지우지 않고 deleted=true로만 처리한다(soft delete).
+const deletePerformance = async (item: PerformanceListItem) => {
+  if (!confirm(`'${item.name}'을(를) 삭제할까요?`)) {
+    return
+  }
+  try {
+    await $fetch(`/api/performances/${item.product_id}`, { method: 'DELETE' })
+    toast.add({ title: '삭제되었습니다.', color: 'success' })
+    await loadItems()
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '삭제에 실패했습니다.'
+    toast.add({ title: message, color: 'error' })
+  }
+}
+
+const restorePerformance = async (item: PerformanceListItem) => {
+  try {
+    await $fetch(`/api/performances/${item.product_id}/restore`, { method: 'POST' })
+    toast.add({ title: '복구되었습니다.', color: 'success' })
+    await loadItems()
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '복구에 실패했습니다.'
+    toast.add({ title: message, color: 'error' })
+  }
+}
+
 const columns = [
   { accessorKey: 'name', header: '이름' },
   { accessorKey: 'service_id', header: '소유 서비스' },
   { id: 'exposed', header: '노출 서비스' },
   { accessorKey: 'performance_type', header: '공연구분' },
   { accessorKey: 'status', header: '상태' },
+  { accessorKey: 'actions', header: '작업' },
 ]
 </script>
 
@@ -211,6 +244,13 @@ const columns = [
       search-placeholder="검색"
       :search-keys="['name']"
     >
+      <template #filters>
+        <UCheckbox
+          v-model="showDeleted"
+          label="삭제된 항목 보기"
+        />
+      </template>
+
       <template #service_id-cell="{ row }">
         <button
           type="button"
@@ -246,8 +286,24 @@ const columns = [
       </template>
       <template #status-cell="{ row }">
         <UBadge
+          v-if="row.original.deleted"
+          label="삭제됨"
+          color="error"
+          variant="subtle"
+        />
+        <UBadge
+          v-else
           :label="statusLabels[row.original.status as ProductStatus]"
           variant="subtle"
+        />
+      </template>
+      <template #actions-cell="{ row }">
+        <AppRowActionsMenu
+          :activated="false"
+          :deleted="row.original.deleted"
+          :show-toggle="false"
+          @delete="deletePerformance(row.original)"
+          @restore="restorePerformance(row.original)"
         />
       </template>
     </AppDataTable>
