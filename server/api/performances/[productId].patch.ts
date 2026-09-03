@@ -1,4 +1,4 @@
-import type { AudienceAgeRange, PerformanceType, ProductStatus } from '~/types/performance'
+import type { AudienceAgeRange, ProductStatus } from '~/types/performance'
 import type { Json } from '~/types/database.types'
 
 interface UpdatePerformanceBody {
@@ -13,7 +13,7 @@ interface UpdatePerformanceBody {
   durationMinutes?: number
   description?: string
   images?: unknown
-  performanceType?: PerformanceType
+  performanceTypeId?: string
   creatorId?: string
 }
 
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   if (
     !body?.name || body.price == null || !body?.serviceId
     || !body?.exposedServiceIds?.length || !body?.categoryId || !body?.genreId
-    || !body?.audienceAge?.length || body.durationMinutes == null || !body?.performanceType
+    || !body?.audienceAge?.length || body.durationMinutes == null || !body?.performanceTypeId
     || !body?.description || !Array.isArray(body.images) || body.images.length === 0
   ) {
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: '모든 항목은 필수입니다.' })
@@ -97,7 +97,7 @@ export default defineEventHandler(async (event) => {
       duration_minutes: body.durationMinutes ?? null,
       description: body.description ?? null,
       images: (body.images as Json) ?? null,
-      performance_type: body.performanceType ?? null,
+      performance_type_id: body.performanceTypeId ?? null,
     })
     .eq('product_id', productId)
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AudienceAgeRange, PerformanceType } from '~/types/performance'
+import type { AudienceAgeRange } from '~/types/performance'
 
 // 등록 폼과 수정 폼이 필드 구성을 그대로 공유한다(performances.vue에서 둘 다 이 컴포넌트를 쓴다).
 // productId가 null이면(신규 등록, 저장 전) 이미지는 로컬에 쌓아뒀다가 부모가
@@ -8,6 +8,7 @@ const props = defineProps<{
   services: { id: string, name: string }[]
   categories: { id: string, label: string }[]
   genres: { id: string, label: string }[]
+  performanceTypes: { id: string, label: string }[]
   productId: string | null
 }>()
 
@@ -20,12 +21,13 @@ const audienceAge = defineModel<AudienceAgeRange[]>('audienceAge', { required: t
 const genreId = defineModel<string | undefined>('genreId', { required: true })
 const durationMinutes = defineModel<number | null>('durationMinutes', { required: true })
 const description = defineModel<string>('description', { required: true })
-const performanceType = defineModel<PerformanceType | undefined>('performanceType', { required: true })
+const performanceTypeId = defineModel<string | undefined>('performanceTypeId', { required: true })
 const images = defineModel<string[]>('images', { required: true })
 
 // 연령대는 자유입력을 받으면 "20대", "20", "이십대" 등 표기가 제각각이라 필터/통계에 못 쓴다 —
 // 10년 단위 고정 선택지로 제한한다. DB엔 영문 코드(audience_age_range ENUM)로 저장하고
-// 화면 라벨은 여기서만 한글로 보여준다(performance_type과 동일 패턴).
+// 화면 라벨은 여기서만 한글로 보여준다. (공연구분은 카테고리/장르와 마찬가지로 어드민에서
+// 관리하는 값이라 하드코딩 없이 props.performanceTypes를 그대로 쓴다.)
 const audienceAgeOptions: { label: string, value: AudienceAgeRange }[] = [
   { label: '전체', value: 'all' },
   { label: '10대', value: '10s' },
@@ -57,7 +59,7 @@ const validate = () => {
   } else if (durationMinutes.value % 5 !== 0) {
     next.durationMinutes = '5분 단위로 입력해주세요.'
   }
-  if (!performanceType.value) next.performanceType = '필수 항목입니다.'
+  if (!performanceTypeId.value) next.performanceTypeId = '필수 항목입니다.'
   // 등록 폼(productId 없음)은 아직 업로드되지 않고 로컬에만 쌓인 파일이 있을 수 있어서
   // images.value(이미 업로드된 URL)만 보면 안 되고 ImageUploader의 대기열도 같이 봐야 한다.
   if (images.value.length === 0 && !imageUploaderRef.value?.hasPending) {
@@ -229,14 +231,24 @@ const toggleExposedService = (id: string) => {
         label="공연구분"
         class="w-36"
         required
-        :error="errors.performanceType"
+        :error="errors.performanceTypeId"
       >
         <USelect
-          v-model="performanceType"
-          :items="[{ label: '직접제작', value: 'direct' }, { label: '중개', value: 'brokered' }]"
+          v-model="performanceTypeId"
+          :items="performanceTypes.map(t => ({ label: t.label, value: t.id }))"
+          placeholder="공연구분 선택"
           aria-label="공연구분"
           class="w-full"
-        />
+        >
+          <template
+            v-if="performanceTypes.length === 0"
+            #content-top
+          >
+            <p class="px-2 py-1.5 text-xs text-muted">
+              등록된 공연구분이 없습니다
+            </p>
+          </template>
+        </USelect>
       </UFormField>
     </div>
 

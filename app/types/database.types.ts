@@ -1180,9 +1180,7 @@ export type Database = {
           genre_id: string | null
           id: string
           images: Json | null
-          performance_type:
-            | Database['public']['Enums']['performance_type']
-            | null
+          performance_type_id: string | null
           product_id: string
           update_user_id: string | null
           updated_at: string
@@ -1200,9 +1198,7 @@ export type Database = {
           genre_id?: string | null
           id?: string
           images?: Json | null
-          performance_type?:
-            | Database['public']['Enums']['performance_type']
-            | null
+          performance_type_id?: string | null
           product_id: string
           update_user_id?: string | null
           updated_at?: string
@@ -1220,9 +1216,7 @@ export type Database = {
           genre_id?: string | null
           id?: string
           images?: Json | null
-          performance_type?:
-            | Database['public']['Enums']['performance_type']
-            | null
+          performance_type_id?: string | null
           product_id?: string
           update_user_id?: string | null
           updated_at?: string
@@ -1238,6 +1232,13 @@ export type Database = {
           {
             foreignKeyName: 'performance_catalog_genre_id_fkey'
             columns: ['genre_id']
+            isOneToOne: false
+            referencedRelation: 'catalog_taxonomies'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'performance_catalog_performance_type_id_fkey'
+            columns: ['performance_type_id']
             isOneToOne: false
             referencedRelation: 'catalog_taxonomies'
             referencedColumns: ['id']
@@ -1725,7 +1726,6 @@ export type Database = {
       payment_method: 'corporate_card' | 'bank_transfer' | 'invoice'
       payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded'
       payment_type: 'product_purchase' | 'other'
-      performance_type: 'direct' | 'brokered'
       point_transaction_type: 'earn' | 'redeem' | 'expire' | 'admin_adjustment'
       product_status: 'draft' | 'published' | 'blocked'
       tier_source: 'auto' | 'manual'
@@ -1904,7 +1904,6 @@ export const Constants = {
       payment_method: ['corporate_card', 'bank_transfer', 'invoice'],
       payment_status: ['pending', 'succeeded', 'failed', 'refunded'],
       payment_type: ['product_purchase', 'other'],
-      performance_type: ['direct', 'brokered'],
       point_transaction_type: ['earn', 'redeem', 'expire', 'admin_adjustment'],
       product_status: ['draft', 'published', 'blocked'],
       tier_source: ['auto', 'manual'],
