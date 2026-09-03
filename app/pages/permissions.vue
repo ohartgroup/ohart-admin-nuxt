@@ -184,7 +184,7 @@ const serviceColumns = [
   { accessorKey: 'name', header: '이름' },
   { accessorKey: 'slug', header: 'slug' },
   { accessorKey: 'status', header: '상태' },
-  { accessorKey: 'actions', header: '' },
+  { accessorKey: 'actions', header: '작업' },
 ]
 </script>
 

@@ -131,7 +131,7 @@ const columns = [
   { accessorKey: 'parent', header: '상위부서' },
   { accessorKey: 'code', header: '코드' },
   { accessorKey: 'active', header: '상태' },
-  { accessorKey: 'actions', header: '' },
+  { accessorKey: 'actions', header: '작업' },
 ]
 </script>
 

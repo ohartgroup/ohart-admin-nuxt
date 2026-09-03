@@ -116,7 +116,7 @@ const restoreTaxonomy = async (taxonomy: Taxonomy) => {
 const columns = [
   { accessorKey: 'label', header: '이름' },
   { accessorKey: 'activated', header: '상태' },
-  { accessorKey: 'actions', header: '' },
+  { accessorKey: 'actions', header: '작업' },
 ]
 </script>
 
