@@ -28,9 +28,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: accountsError.message })
   }
 
+  // 감사로그는 "그 시점에 누가 했는지"를 영구 보존하는 게 목적이라 users/services에
+  // deleted 필터를 걸지 않는다 — 계정이 나중에 삭제되거나 서비스가 없어져도 과거 로그에는
+  // 여전히 실명/서비스명이 남아 있어야 한다(다른 조회들과 의도적으로 다른 정책).
   const [{ data: users, error: usersError }, { data: services, error: servicesError }] = await Promise.all([
-    client.from('users').select('id, email, display_name').in('id', accounts.map(a => a.user_id)).eq('deleted', false),
-    client.from('services').select('id, name').eq('deleted', false),
+    client.from('users').select('id, email, display_name').in('id', accounts.map(a => a.user_id)),
+    client.from('services').select('id, name'),
   ])
 
   if (usersError) {
