@@ -38,17 +38,47 @@ const toggleExposedService = (id: string) => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex gap-2">
+    <!-- 1행: 소유/노출 서비스 — 어떤 서비스에 속하고 어디에 노출되는지가 다른 값들의 전제가
+         되는 정보라 폼 맨 위로 뺐다. -->
+    <div class="flex gap-4">
       <UFormField
-        label="이름"
+        label="소유 서비스 (내부 관리 권한 기준)"
         class="flex-1"
       >
-        <UInput
-          v-model="name"
-          aria-label="이름"
+        <USelect
+          v-model="serviceId"
+          :items="services.map(s => ({ label: s.name, value: s.id }))"
+          aria-label="소유 서비스"
           class="w-full"
         />
       </UFormField>
+      <UFormField
+        label="노출 서비스 (복수 선택 가능)"
+        class="flex-1"
+      >
+        <div class="flex gap-3 h-8 items-center">
+          <UCheckbox
+            v-for="service in services"
+            :key="service.id"
+            :model-value="exposedServiceIds.includes(service.id)"
+            :label="service.name"
+            @update:model-value="toggleExposedService(service.id)"
+          />
+        </div>
+      </UFormField>
+    </div>
+
+    <!-- 2행: 이름 -->
+    <UFormField label="이름">
+      <UInput
+        v-model="name"
+        aria-label="이름"
+        class="w-full"
+      />
+    </UFormField>
+
+    <!-- 3행: 가격/카테고리/장르 -->
+    <div class="flex gap-2">
       <UFormField label="가격">
         <UInput
           v-model.number="price"
@@ -56,42 +86,13 @@ const toggleExposedService = (id: string) => {
           aria-label="가격"
         />
       </UFormField>
-      <UFormField label="카테고리">
-        <UInput
-          v-model="category"
-          aria-label="카테고리"
-        />
-      </UFormField>
-    </div>
-
-    <UFormField label="소유 서비스 (내부 관리 권한 기준)">
-      <USelect
-        v-model="serviceId"
-        :items="services.map(s => ({ label: s.name, value: s.id }))"
-        aria-label="소유 서비스"
-      />
-    </UFormField>
-
-    <UFormField label="노출 서비스 (복수 선택 가능)">
-      <div class="flex gap-3">
-        <UCheckbox
-          v-for="service in services"
-          :key="service.id"
-          :model-value="exposedServiceIds.includes(service.id)"
-          :label="service.name"
-          @update:model-value="toggleExposedService(service.id)"
-        />
-      </div>
-    </UFormField>
-
-    <div class="flex gap-2">
       <UFormField
-        label="관객 연령대"
+        label="카테고리"
         class="flex-1"
       >
         <UInput
-          v-model="audienceAge"
-          aria-label="관객 연령대"
+          v-model="category"
+          aria-label="카테고리"
           class="w-full"
         />
       </UFormField>
@@ -102,6 +103,20 @@ const toggleExposedService = (id: string) => {
         <UInput
           v-model="genre"
           aria-label="장르"
+          class="w-full"
+        />
+      </UFormField>
+    </div>
+
+    <!-- 4행: 관객 연령대/러닝타임/공연구분 -->
+    <div class="flex gap-2">
+      <UFormField
+        label="관객 연령대"
+        class="flex-1"
+      >
+        <UInput
+          v-model="audienceAge"
+          aria-label="관객 연령대"
           class="w-full"
         />
       </UFormField>
@@ -121,18 +136,20 @@ const toggleExposedService = (id: string) => {
       </UFormField>
     </div>
 
-    <UFormField label="설명">
-      <UTextarea
-        v-model="description"
-        class="w-full"
-      />
-    </UFormField>
-
+    <!-- 5행: 이미지 -->
     <UFormField label="이미지">
       <PerformancesImageUploader
         ref="imageUploaderRef"
         v-model="images"
         :product-id="props.productId"
+      />
+    </UFormField>
+
+    <!-- 6행: 상세설명 -->
+    <UFormField label="상세설명">
+      <UTextarea
+        v-model="description"
+        class="w-full"
       />
     </UFormField>
   </div>
