@@ -6,4 +6,9 @@
   button:not(:disabled) {
     cursor: pointer;
   }
+
+  /* 한글 텍스트가 어절 중간에서 줄바꿈되는 것 방지 — 관리자 화면 전체 적용 */
+  html {
+    word-break: keep-all;
+  }
 }

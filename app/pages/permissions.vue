@@ -186,10 +186,15 @@ const serviceColumns = [
   { accessorKey: 'status', header: '상태' },
   { accessorKey: 'actions', header: '작업' },
 ]
+
+const tabItems = [
+  { label: '서비스', icon: 'i-lucide-layers', slot: 'services' as const },
+  { label: '관리자별 권한', icon: 'i-lucide-user-cog', slot: 'roles' as const },
+]
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl flex flex-col gap-4">
+  <div class="p-6 flex flex-col gap-4">
     <UPageCard
       v-if="loaded && !isSuperAdmin"
       title="접근 권한이 없습니다"
@@ -198,155 +203,175 @@ const serviceColumns = [
     />
 
     <template v-else>
-      <UPageCard title="서비스 추가">
-        <div class="flex gap-2">
-          <UInput
-            v-model="newServiceName"
-            aria-label="서비스명"
-            placeholder="서비스명(예: 아트스쿨)"
-            class="flex-1"
-          />
-          <UInput
-            v-model="newServiceSlug"
-            aria-label="slug"
-            placeholder="slug(예: artschool)"
-            class="w-48"
-          />
-          <UButton
-            label="추가"
-            icon="i-lucide-plus"
-            :loading="creatingService"
-            @click="createService"
-          />
-        </div>
-      </UPageCard>
-
-      <AppDataTable
-        :data="serviceList"
-        :columns="serviceColumns"
-        :search-keys="['name', 'slug']"
-        search-placeholder="서비스명/slug 검색"
+      <UTabs
+        :items="tabItems"
+        class="w-full"
       >
-        <template #filters>
-          <UCheckbox
-            v-model="showDeletedServices"
-            label="삭제된 서비스 보기"
-          />
-        </template>
-
-        <template #status-cell="{ row }">
-          <UBadge
-            v-if="row.original.deleted"
-            label="삭제됨"
-            color="error"
-            variant="subtle"
-          />
-          <UBadge
-            v-else
-            :label="row.original.activated ? '사용' : '미사용'"
-            :color="row.original.activated ? 'success' : 'neutral'"
-            variant="subtle"
-          />
-        </template>
-
-        <template #actions-cell="{ row }">
-          <AppRowActionsMenu
-            :activated="row.original.activated"
-            :deleted="row.original.deleted"
-            @toggle="toggleServiceActive(row.original)"
-            @delete="deleteService(row.original)"
-            @restore="restoreService(row.original)"
-          />
-        </template>
-      </AppDataTable>
-
-      <div class="flex justify-end">
-        <UCheckbox
-          v-model="showRevokedRoles"
-          label="회수된 권한 보기"
-        />
-      </div>
-
-      <p
-        v-if="!loading && accounts.length === 0"
-        class="text-sm text-muted"
-      >
-        활성화된 관리자 계정이 없습니다.
-      </p>
-
-      <UPageCard
-        v-for="account in accounts"
-        :key="account.id"
-      >
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <p class="font-medium">
-              {{ account.user?.email }}
+        <template #services>
+          <div class="flex flex-col gap-4 pt-4">
+            <p class="text-sm text-muted">
+              artboda·stub 같은 서비스 자체를 추가/삭제합니다. 삭제해도 이 서비스로 배정된 권한/데이터는 그대로 남아있을 수 있습니다.
             </p>
-            <p class="text-xs text-muted">
-              {{ account.user?.display_name }} · {{ account.department?.name ?? '부서 미설정' }}
-            </p>
+
+            <UPageCard title="서비스 추가">
+              <div class="flex gap-2">
+                <UInput
+                  v-model="newServiceName"
+                  aria-label="서비스명"
+                  placeholder="서비스명(예: 아트스쿨)"
+                  class="flex-1"
+                />
+                <UInput
+                  v-model="newServiceSlug"
+                  aria-label="slug"
+                  placeholder="slug(예: artschool)"
+                  class="w-48"
+                />
+                <UButton
+                  label="추가"
+                  icon="i-lucide-plus"
+                  :loading="creatingService"
+                  @click="createService"
+                />
+              </div>
+            </UPageCard>
+
+            <AppDataTable
+              :data="serviceList"
+              :columns="serviceColumns"
+              :search-keys="['name', 'slug']"
+              search-placeholder="서비스명/slug 검색"
+            >
+              <template #filters>
+                <UCheckbox
+                  v-model="showDeletedServices"
+                  label="삭제된 서비스 보기"
+                />
+              </template>
+
+              <template #status-cell="{ row }">
+                <UBadge
+                  v-if="row.original.deleted"
+                  label="삭제됨"
+                  color="error"
+                  variant="subtle"
+                />
+                <UBadge
+                  v-else
+                  :label="row.original.activated ? '사용' : '미사용'"
+                  :color="row.original.activated ? 'success' : 'neutral'"
+                  variant="subtle"
+                />
+              </template>
+
+              <template #actions-cell="{ row }">
+                <AppRowActionsMenu
+                  :activated="row.original.activated"
+                  :deleted="row.original.deleted"
+                  @toggle="toggleServiceActive(row.original)"
+                  @delete="deleteService(row.original)"
+                  @restore="restoreService(row.original)"
+                />
+              </template>
+            </AppDataTable>
           </div>
-        </div>
+        </template>
 
-        <div class="flex flex-wrap gap-2 mb-3">
-          <UBadge
-            v-for="role in account.roleAssignments"
-            :key="role.id"
-            variant="subtle"
-            :color="role.deleted ? 'neutral' : 'primary'"
-            :class="role.deleted && 'opacity-60'"
-          >
-            {{ roleLabels[role.roleType] ?? role.roleType }}<span v-if="role.serviceName"> · {{ role.serviceName }}</span><span v-if="role.deleted"> · 회수됨</span>
-            <UButton
-              v-if="role.deleted"
-              icon="i-lucide-rotate-ccw"
-              size="xs"
-              variant="link"
-              color="neutral"
-              class="ml-1 p-0"
-              @click="restore(account, role)"
-            />
-            <UButton
-              v-else
-              icon="i-lucide-x"
-              size="xs"
-              variant="link"
-              color="neutral"
-              class="ml-1 p-0"
-              @click="revoke(account, role)"
-            />
-          </UBadge>
-          <span
-            v-if="account.roleAssignments.length === 0"
-            class="text-sm text-muted"
-          >권한 없음</span>
-        </div>
+        <template #roles>
+          <div class="flex flex-col gap-4 pt-4">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-muted">
+                관리자 계정별로 어떤 서비스에 어떤 권한(super_admin/service_admin/settlement_viewer)이 있는지 부여/회수합니다.
+              </p>
+              <UCheckbox
+                v-model="showRevokedRoles"
+                label="회수된 권한 보기"
+              />
+            </div>
 
-        <div class="flex gap-2">
-          <USelect
-            v-model="grantForm[account.id]!.roleType"
-            :items="roleOptions"
-            value-key="value"
-            aria-label="권한"
-            class="w-44"
-          />
-          <USelect
-            v-model="grantForm[account.id]!.serviceId"
-            :items="services"
-            value-key="value"
-            aria-label="서비스"
-            placeholder="서비스(super_admin은 전체)"
-            :disabled="grantForm[account.id]?.roleType === 'super_admin'"
-            class="w-56"
-          />
-          <UButton
-            label="권한 부여"
-            size="sm"
-            @click="grant(account)"
-          />
-        </div>
-      </UPageCard>
+            <p
+              v-if="!loading && accounts.length === 0"
+              class="text-sm text-muted"
+            >
+              활성화된 관리자 계정이 없습니다.
+            </p>
+
+            <UPageCard
+              v-for="account in accounts"
+              :key="account.id"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <p class="font-medium">
+                    {{ account.user?.email }}
+                  </p>
+                  <p class="text-xs text-muted">
+                    {{ account.user?.display_name }} · {{ account.department?.name ?? '부서 미설정' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-2 mb-3">
+                <UBadge
+                  v-for="role in account.roleAssignments"
+                  :key="role.id"
+                  variant="subtle"
+                  :color="role.deleted ? 'neutral' : 'primary'"
+                  :class="role.deleted && 'opacity-60'"
+                >
+                  {{ roleLabels[role.roleType] ?? role.roleType }}<span v-if="role.serviceName"> · {{ role.serviceName }}</span><span v-if="role.deleted"> · 회수됨</span>
+                  <UButton
+                    v-if="role.deleted"
+                    icon="i-lucide-rotate-ccw"
+                    size="xs"
+                    variant="link"
+                    color="neutral"
+                    class="ml-1 p-0"
+                    @click="restore(account, role)"
+                  />
+                  <UButton
+                    v-else
+                    icon="i-lucide-x"
+                    size="xs"
+                    variant="link"
+                    color="neutral"
+                    class="ml-1 p-0"
+                    @click="revoke(account, role)"
+                  />
+                </UBadge>
+                <span
+                  v-if="account.roleAssignments.length === 0"
+                  class="text-sm text-muted"
+                >권한 없음</span>
+              </div>
+
+              <div class="flex gap-2">
+                <USelect
+                  v-model="grantForm[account.id]!.roleType"
+                  :items="roleOptions"
+                  value-key="value"
+                  aria-label="권한"
+                  class="w-44"
+                />
+                <USelect
+                  v-model="grantForm[account.id]!.serviceId"
+                  :items="services"
+                  value-key="value"
+                  aria-label="서비스"
+                  placeholder="서비스(super_admin은 전체)"
+                  :disabled="grantForm[account.id]?.roleType === 'super_admin'"
+                  class="w-56"
+                />
+                <UButton
+                  label="권한 부여"
+                  size="sm"
+                  @click="grant(account)"
+                />
+              </div>
+            </UPageCard>
+          </div>
+        </template>
+      </UTabs>
     </template>
   </div>
 </template>
