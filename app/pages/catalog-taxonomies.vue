@@ -194,35 +194,13 @@ const columns = [
         </template>
 
         <template #actions-cell="{ row }">
-          <UButton
-            v-if="row.original.deleted"
-            label="복구"
-            icon="i-lucide-rotate-ccw"
-            size="xs"
-            variant="soft"
-            color="primary"
-            @click="restoreTaxonomy(row.original)"
+          <AppRowActionsMenu
+            :activated="row.original.activated"
+            :deleted="row.original.deleted"
+            @toggle="toggleActive(row.original)"
+            @delete="deleteTaxonomy(row.original)"
+            @restore="restoreTaxonomy(row.original)"
           />
-          <div
-            v-else
-            class="flex gap-1"
-          >
-            <UButton
-              :label="row.original.activated ? '비활성화' : '활성화'"
-              size="xs"
-              variant="soft"
-              :color="row.original.activated ? 'neutral' : 'primary'"
-              @click="toggleActive(row.original)"
-            />
-            <UButton
-              label="삭제"
-              icon="i-lucide-trash-2"
-              size="xs"
-              variant="ghost"
-              color="error"
-              @click="deleteTaxonomy(row.original)"
-            />
-          </div>
         </template>
       </AppDataTable>
     </template>
