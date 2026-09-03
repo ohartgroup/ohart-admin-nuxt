@@ -284,7 +284,6 @@ const columns = [
             :label="serviceName(id)"
             variant="subtle"
             color="neutral"
-            size="sm"
           />
         </div>
       </template>
