@@ -3,6 +3,7 @@ export type ProductStatus = 'draft' | 'published' | 'blocked'
 
 export interface PerformanceListItem {
   product_id: string
+  deleted: boolean
   name: string
   price: number
   category_id: string | null

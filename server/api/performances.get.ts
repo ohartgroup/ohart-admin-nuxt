@@ -3,6 +3,8 @@
 // 소유 서비스가 아니어도 자기 스토어프론트에 걸린 공연은 볼 수 있어야 하기 때문(수정은 RLS가 소유 기준으로 막음).
 export default defineEventHandler(async (event) => {
   const { client, isSuperAdmin, serviceIds } = await requireCatalogAdmin(event)
+  const query = getQuery(event)
+  const includeDeleted = query.includeDeleted === 'true'
 
   let productIdsInScope: string[] | null = null
   if (!isSuperAdmin) {
@@ -21,18 +23,20 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  let query = client
+  let catalogQuery = client
     .from('performance_catalog')
-    .select('product_id, creator_id, audience_age, genre_id, duration_minutes, description, images, performance_type, products!inner(name, price, category_id, status, service_id)')
-    .eq('deleted', false)
-    .eq('products.deleted', false)
+    .select('product_id, deleted, creator_id, audience_age, genre_id, duration_minutes, description, images, performance_type, products!inner(name, price, category_id, status, service_id, deleted)')
     .order('created_at', { ascending: false })
 
-  if (productIdsInScope) {
-    query = query.in('product_id', productIdsInScope)
+  if (!includeDeleted) {
+    catalogQuery = catalogQuery.eq('deleted', false).eq('products.deleted', false)
   }
 
-  const { data: catalog, error: catalogError } = await query
+  if (productIdsInScope) {
+    catalogQuery = catalogQuery.in('product_id', productIdsInScope)
+  }
+
+  const { data: catalog, error: catalogError } = await catalogQuery
   if (catalogError) {
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: catalogError.message })
   }
@@ -48,6 +52,8 @@ export default defineEventHandler(async (event) => {
 
   return catalog.map(c => ({
     product_id: c.product_id,
+    // 카탈로그 row/상품 row 어느 쪽이 지워졌어도 "삭제됨"으로 취급한다.
+    deleted: c.deleted || c.products.deleted,
     name: c.products.name,
     price: c.products.price,
     category_id: c.products.category_id,
