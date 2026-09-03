@@ -73,6 +73,24 @@ const toggleActive = async (taxonomy: Taxonomy) => {
   await loadTaxonomies()
 }
 
+// 관리자 화면 삭제는 실제 row를 지우지 않고 deleted=true로만 처리한다(soft delete) —
+// 이미 등록된 공연작품이 참조 중인 값일 수 있어서 실제로 지우면 참조 무결성이 깨진다.
+const deleteTaxonomy = async (taxonomy: Taxonomy) => {
+  if (!confirm(`'${taxonomy.label}'을(를) 삭제할까요? 목록/선택지에서 더 이상 보이지 않습니다.`)) {
+    return
+  }
+  const { error } = await supabase
+    .from('catalog_taxonomies')
+    .update({ deleted: true })
+    .eq('id', taxonomy.id)
+
+  if (error) {
+    toast.add({ title: '삭제에 실패했습니다.', description: error.message, color: 'error' })
+    return
+  }
+  await loadTaxonomies()
+}
+
 const columns = [
   { accessorKey: 'label', header: '이름' },
   { accessorKey: 'activated', header: '상태' },
@@ -141,13 +159,23 @@ const columns = [
         </template>
 
         <template #actions-cell="{ row }">
-          <UButton
-            :label="row.original.activated ? '비활성화' : '활성화'"
-            size="xs"
-            variant="soft"
-            :color="row.original.activated ? 'neutral' : 'primary'"
-            @click="toggleActive(row.original)"
-          />
+          <div class="flex gap-1">
+            <UButton
+              :label="row.original.activated ? '비활성화' : '활성화'"
+              size="xs"
+              variant="soft"
+              :color="row.original.activated ? 'neutral' : 'primary'"
+              @click="toggleActive(row.original)"
+            />
+            <UButton
+              label="삭제"
+              icon="i-lucide-trash-2"
+              size="xs"
+              variant="ghost"
+              color="error"
+              @click="deleteTaxonomy(row.original)"
+            />
+          </div>
         </template>
       </AppDataTable>
     </template>
