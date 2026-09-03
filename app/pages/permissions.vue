@@ -6,6 +6,7 @@ interface RoleAssignment {
   roleType: 'super_admin' | 'service_admin' | 'settlement_viewer'
   serviceId: string | null
   serviceName: string | null
+  deleted: boolean
 }
 
 interface ActiveAccount {
@@ -27,6 +28,8 @@ const grantForm = ref<Record<string, { roleType: string, serviceId?: string }>>(
 const newServiceName = ref('')
 const newServiceSlug = ref('')
 const creatingService = ref(false)
+// 회수된(deleted=true) 권한도 같이 불러와서 보고 되돌릴 수 있게 하는 토글.
+const showRevokedRoles = ref(false)
 
 const roleOptions = [
   { label: 'Super Admin', value: 'super_admin' },
@@ -42,13 +45,17 @@ const roleLabels: Record<string, string> = {
 
 const loadAccounts = async () => {
   loading.value = true
-  const data = await $fetch<ActiveAccount[]>('/api/admin/active-accounts')
+  const data = await $fetch<ActiveAccount[]>('/api/admin/active-accounts', {
+    query: { includeRevokedRoles: showRevokedRoles.value ? 'true' : undefined },
+  })
   accounts.value = data
   for (const account of data) {
     grantForm.value[account.id] ??= { roleType: 'service_admin' }
   }
   loading.value = false
 }
+
+watch(showRevokedRoles, loadAccounts)
 
 const loadServices = async () => {
   const { data } = await supabase.from('services').select('id, name').eq('deleted', false).order('name')
@@ -99,6 +106,13 @@ const revoke = async (account: ActiveAccount, role: RoleAssignment) => {
   toast.add({ title: '권한이 회수되었습니다.', color: 'neutral' })
   await loadAccounts()
 }
+
+const restore = async (account: ActiveAccount, role: RoleAssignment) => {
+  await $fetch('/api/admin/restore-role', { method: 'POST', body: { roleAssignmentId: role.id } })
+  await log('role_restored', { targetResource: { adminAccountId: account.id, roleAssignmentId: role.id } })
+  toast.add({ title: '권한이 복구되었습니다.', color: 'success' })
+  await loadAccounts()
+}
 </script>
 
 <template>
@@ -134,6 +148,13 @@ const revoke = async (account: ActiveAccount, role: RoleAssignment) => {
         </div>
       </UPageCard>
 
+      <div class="flex justify-end">
+        <UCheckbox
+          v-model="showRevokedRoles"
+          label="회수된 권한 보기"
+        />
+      </div>
+
       <p
         v-if="!loading && accounts.length === 0"
         class="text-sm text-muted"
@@ -161,9 +182,21 @@ const revoke = async (account: ActiveAccount, role: RoleAssignment) => {
             v-for="role in account.roleAssignments"
             :key="role.id"
             variant="subtle"
+            :color="role.deleted ? 'neutral' : 'primary'"
+            :class="role.deleted && 'opacity-60'"
           >
-            {{ roleLabels[role.roleType] ?? role.roleType }}<span v-if="role.serviceName"> · {{ role.serviceName }}</span>
+            {{ roleLabels[role.roleType] ?? role.roleType }}<span v-if="role.serviceName"> · {{ role.serviceName }}</span><span v-if="role.deleted"> · 회수됨</span>
             <UButton
+              v-if="role.deleted"
+              icon="i-lucide-rotate-ccw"
+              size="xs"
+              variant="link"
+              color="neutral"
+              class="ml-1 p-0"
+              @click="restore(account, role)"
+            />
+            <UButton
+              v-else
               icon="i-lucide-x"
               size="xs"
               variant="link"
