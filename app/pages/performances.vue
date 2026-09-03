@@ -88,8 +88,8 @@ const startNewPerformance = () => {
 }
 
 const submitNewPerformance = async () => {
-  if (!draftName.value.trim() || !draftServiceId.value) {
-    toast.add({ title: '이름/소유 서비스는 필수입니다.', color: 'error' })
+  if (!createFormRef.value?.validate()) {
+    toast.add({ title: '필수 항목을 모두 입력해주세요.', color: 'error' })
     return
   }
   creating.value = true
@@ -142,6 +142,7 @@ const editDurationMinutes = ref<number | null>(null)
 const editDescription = ref('')
 const editPerformanceType = ref<PerformanceType | undefined>(undefined)
 const editImages = ref<string[]>([])
+const editFormRef = useTemplateRef('editFormRef')
 
 const openEditForm = (row: PerformanceListItem) => {
   editingProductId.value = row.product_id
@@ -161,8 +162,11 @@ const openEditForm = (row: PerformanceListItem) => {
 }
 
 const submitEditPerformance = async () => {
-  if (!editingProductId.value || !editName.value.trim() || !editServiceId.value) {
-    toast.add({ title: '이름/소유 서비스는 필수입니다.', color: 'error' })
+  if (!editingProductId.value) {
+    return
+  }
+  if (!editFormRef.value?.validate()) {
+    toast.add({ title: '필수 항목을 모두 입력해주세요.', color: 'error' })
     return
   }
   saving.value = true
@@ -248,6 +252,7 @@ const columns = [
         <UCheckbox
           v-model="showDeleted"
           label="삭제된 항목 보기"
+          aria-label="삭제된 항목 보기"
         />
       </template>
 
@@ -369,6 +374,7 @@ const columns = [
         </UFormField>
 
         <PerformancesForm
+          ref="editFormRef"
           v-model:name="editName"
           v-model:price="editPrice"
           v-model:category-id="editCategoryId"

@@ -264,6 +264,7 @@ const tabItems = [
                 <UCheckbox
                   v-model="showDeletedServices"
                   label="삭제된 서비스 보기"
+                  aria-label="삭제된 서비스 보기"
                 />
               </template>
 
@@ -304,6 +305,7 @@ const tabItems = [
               <UCheckbox
                 v-model="showRevokedRoles"
                 label="회수된 권한 보기"
+                aria-label="회수된 권한 보기"
               />
             </div>
 

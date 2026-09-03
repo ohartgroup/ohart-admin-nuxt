@@ -24,8 +24,19 @@ export default defineEventHandler(async (event) => {
   const { client, adminAccountId, isSuperAdmin, serviceIds } = await requireCatalogAdmin(event)
   const body = await readBody<CreatePerformanceBody>(event)
 
-  if (!body?.name || body.price == null || !body?.serviceId) {
-    throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'name, price, serviceId는 필수입니다.' })
+  // 폼(Form.vue)의 모든 필드를 필수값으로 취급하기로 했다 — 클라이언트 검증을 우회해서
+  // 직접 호출해도 서버가 한 번 더 막는다. images는 예외 — 등록 시점엔 아직 상품이 없어서
+  // (POST 성공 후 productId를 받아야 업로드 가능) 이 요청엔 애초에 포함되지 않는다.
+  if (
+    !body?.name || body.price == null || !body?.serviceId
+    || !body?.exposedServiceIds?.length || !body?.categoryId || !body?.genreId
+    || !body?.audienceAge || body.durationMinutes == null || !body?.performanceType
+    || !body?.description
+  ) {
+    throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: '모든 항목은 필수입니다.' })
+  }
+  if (body.durationMinutes % 5 !== 0) {
+    throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: '러닝타임은 5분 단위로 입력해야 합니다.' })
   }
 
   const exposedServiceIds = [...new Set([body.serviceId, ...(body.exposedServiceIds ?? [])])]
