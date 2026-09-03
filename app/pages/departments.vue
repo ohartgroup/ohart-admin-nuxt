@@ -206,6 +206,7 @@ const columns = [
           <UCheckbox
             v-model="showDeleted"
             label="삭제된 부서 보기"
+            aria-label="삭제된 부서 보기"
           />
         </template>
 

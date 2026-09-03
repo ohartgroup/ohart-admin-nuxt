@@ -23,9 +23,54 @@ const description = defineModel<string>('description', { required: true })
 const performanceType = defineModel<PerformanceType | undefined>('performanceType', { required: true })
 const images = defineModel<string[]>('images', { required: true })
 
+// 연령대는 자유입력을 받으면 "20대", "20", "이십대" 등 표기가 제각각이라 필터/통계에 못 쓴다 —
+// 10년 단위 고정 선택지로 제한한다.
+const audienceAgeOptions = [
+  { label: '전체', value: '전체' },
+  { label: '10대', value: '10대' },
+  { label: '20대', value: '20대' },
+  { label: '30대', value: '30대' },
+  { label: '40대', value: '40대' },
+  { label: '50대', value: '50대' },
+  { label: '60대', value: '60대' },
+  { label: '70대 이상', value: '70대 이상' },
+]
+
 const imageUploaderRef = useTemplateRef('imageUploaderRef')
+
+const errors = ref<Record<string, string>>({})
+
+// 지금 폼에 있는 정보는 전부 필수값으로 취급한다(사용자 요청) — 서버에서도 걸러주긴 하지만
+// 여기서 먼저 막아야 어디가 비었는지 필드별로 바로 알려줄 수 있다.
+const validate = () => {
+  const next: Record<string, string> = {}
+  if (!name.value?.trim()) next.name = '필수 항목입니다.'
+  if (price.value === null || price.value === undefined || Number.isNaN(price.value)) next.price = '필수 항목입니다.'
+  if (!serviceId.value) next.serviceId = '필수 항목입니다.'
+  if (exposedServiceIds.value.length === 0) next.exposedServiceIds = '하나 이상 선택해주세요.'
+  if (!categoryId.value) next.categoryId = '필수 항목입니다.'
+  if (!genreId.value) next.genreId = '필수 항목입니다.'
+  if (!audienceAge.value) next.audienceAge = '필수 항목입니다.'
+  if (durationMinutes.value === null || durationMinutes.value === undefined) {
+    next.durationMinutes = '필수 항목입니다.'
+  } else if (durationMinutes.value % 5 !== 0) {
+    next.durationMinutes = '5분 단위로 입력해주세요.'
+  }
+  if (!performanceType.value) next.performanceType = '필수 항목입니다.'
+  // 등록 폼(productId 없음)은 아직 업로드되지 않고 로컬에만 쌓인 파일이 있을 수 있어서
+  // images.value(이미 업로드된 URL)만 보면 안 되고 ImageUploader의 대기열도 같이 봐야 한다.
+  if (images.value.length === 0 && !imageUploaderRef.value?.hasPending) {
+    next.images = '하나 이상 등록해주세요.'
+  }
+  if (!description.value?.trim()) next.description = '필수 항목입니다.'
+
+  errors.value = next
+  return Object.keys(next).length === 0
+}
+
 defineExpose({
   flushPendingUploads: (productId: string) => imageUploaderRef.value?.flushPendingUploads(productId),
+  validate,
 })
 
 const toggleExposedService = (id: string) => {
@@ -46,6 +91,8 @@ const toggleExposedService = (id: string) => {
       <UFormField
         label="소유 서비스 (내부 관리 권한 기준)"
         class="flex-1"
+        required
+        :error="errors.serviceId"
       >
         <USelect
           v-model="serviceId"
@@ -57,6 +104,8 @@ const toggleExposedService = (id: string) => {
       <UFormField
         label="노출 서비스 (복수 선택 가능)"
         class="flex-1"
+        required
+        :error="errors.exposedServiceIds"
       >
         <div class="flex gap-3 h-8 items-center">
           <UCheckbox
@@ -64,6 +113,7 @@ const toggleExposedService = (id: string) => {
             :key="service.id"
             :model-value="exposedServiceIds.includes(service.id)"
             :label="service.name"
+            :aria-label="service.name"
             @update:model-value="toggleExposedService(service.id)"
           />
         </div>
@@ -71,7 +121,11 @@ const toggleExposedService = (id: string) => {
     </div>
 
     <!-- 2행: 이름 -->
-    <UFormField label="이름">
+    <UFormField
+      label="이름"
+      required
+      :error="errors.name"
+    >
       <UInput
         v-model="name"
         aria-label="이름"
@@ -81,7 +135,11 @@ const toggleExposedService = (id: string) => {
 
     <!-- 3행: 가격/카테고리/장르 -->
     <div class="flex gap-2">
-      <UFormField label="가격">
+      <UFormField
+        label="가격"
+        required
+        :error="errors.price"
+      >
         <UInput
           v-model.number="price"
           type="number"
@@ -91,6 +149,8 @@ const toggleExposedService = (id: string) => {
       <UFormField
         label="카테고리"
         class="flex-1"
+        required
+        :error="errors.categoryId"
       >
         <USelect
           v-model="categoryId"
@@ -112,6 +172,8 @@ const toggleExposedService = (id: string) => {
       <UFormField
         label="장르"
         class="flex-1"
+        required
+        :error="errors.genreId"
       >
         <USelect
           v-model="genreId"
@@ -137,23 +199,35 @@ const toggleExposedService = (id: string) => {
       <UFormField
         label="관객 연령대"
         class="flex-1"
+        required
+        :error="errors.audienceAge"
       >
-        <UInput
+        <USelect
           v-model="audienceAge"
+          :items="audienceAgeOptions"
+          placeholder="연령대 선택"
           aria-label="관객 연령대"
           class="w-full"
         />
       </UFormField>
-      <UFormField label="러닝타임(분)">
+      <UFormField
+        label="러닝타임(분)"
+        required
+        :error="errors.durationMinutes"
+      >
         <UInput
           v-model.number="durationMinutes"
           type="number"
+          step="5"
+          min="0"
           aria-label="러닝타임"
         />
       </UFormField>
       <UFormField
         label="공연구분"
         class="w-36"
+        required
+        :error="errors.performanceType"
       >
         <USelect
           v-model="performanceType"
@@ -165,7 +239,11 @@ const toggleExposedService = (id: string) => {
     </div>
 
     <!-- 5행: 이미지 -->
-    <UFormField label="이미지">
+    <UFormField
+      label="이미지"
+      required
+      :error="errors.images"
+    >
       <PerformancesImageUploader
         ref="imageUploaderRef"
         v-model="images"
@@ -174,7 +252,11 @@ const toggleExposedService = (id: string) => {
     </UFormField>
 
     <!-- 6행: 상세설명 -->
-    <UFormField label="상세설명">
+    <UFormField
+      label="상세설명"
+      required
+      :error="errors.description"
+    >
       <UTextarea
         v-model="description"
         class="w-full"

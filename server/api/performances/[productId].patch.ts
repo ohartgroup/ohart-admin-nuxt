@@ -29,8 +29,19 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody<UpdatePerformanceBody>(event)
-  if (!body?.name || body.price == null || !body?.serviceId) {
-    throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'name, price, serviceId는 필수입니다.' })
+  // 폼(Form.vue)의 모든 필드를 필수값으로 취급하기로 했다 — 클라이언트 검증을 우회해서
+  // 직접 호출해도 서버가 한 번 더 막는다. 수정 시점엔 이미지가 body에 항상 실려온다
+  // (등록과 달리 productId가 이미 있어서 즉시 업로드되므로) — 그래서 여기선 images도 검사.
+  if (
+    !body?.name || body.price == null || !body?.serviceId
+    || !body?.exposedServiceIds?.length || !body?.categoryId || !body?.genreId
+    || !body?.audienceAge || body.durationMinutes == null || !body?.performanceType
+    || !body?.description || !Array.isArray(body.images) || body.images.length === 0
+  ) {
+    throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: '모든 항목은 필수입니다.' })
+  }
+  if (body.durationMinutes % 5 !== 0) {
+    throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: '러닝타임은 5분 단위로 입력해야 합니다.' })
   }
 
   const { data: existing, error: existingError } = await client
