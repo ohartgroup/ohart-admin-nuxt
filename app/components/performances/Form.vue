@@ -127,11 +127,15 @@ const toggleExposedService = (id: string) => {
           aria-label="러닝타임"
         />
       </UFormField>
-      <UFormField label="공연구분">
+      <UFormField
+        label="공연구분"
+        class="w-36"
+      >
         <USelect
           v-model="performanceType"
           :items="[{ label: '직접제작', value: 'direct' }, { label: '중개', value: 'brokered' }]"
           aria-label="공연구분"
+          class="w-full"
         />
       </UFormField>
     </div>
