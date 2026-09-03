@@ -10,13 +10,14 @@ export const requireServiceAdmin = async (event: H3Event, serviceSlug: string) =
   }
 
   const client = serverSupabaseServiceRole<Database>(event)
-  const { data: service } = await client.from('services').select('id').eq('slug', serviceSlug).maybeSingle()
+  const { data: service } = await client.from('services').select('id').eq('slug', serviceSlug).eq('deleted', false).maybeSingle()
 
   const { data: account } = await client
     .schema('admin')
     .from('admin_accounts')
     .select('id, status, role_assignments!role_assignments_admin_account_id_fkey(role_type, service_id)')
     .eq('user_id', user.sub)
+    .eq('deleted', false)
     .eq('role_assignments.deleted', false)
     .maybeSingle()
 

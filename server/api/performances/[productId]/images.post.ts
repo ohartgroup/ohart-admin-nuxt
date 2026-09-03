@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
     .from('products')
     .select('service_id')
     .eq('id', productId)
+    .eq('deleted', false)
     .maybeSingle()
 
   if (productError) {
@@ -46,6 +47,7 @@ export default defineEventHandler(async (event) => {
     .from('performance_catalog')
     .select('images')
     .eq('product_id', productId)
+    .eq('deleted', false)
     .maybeSingle()
 
   if (catalogError) {

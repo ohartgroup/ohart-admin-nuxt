@@ -37,6 +37,7 @@ export default defineEventHandler(async (event) => {
     .from('products')
     .select('id, service_id')
     .eq('id', productId)
+    .eq('deleted', false)
     .maybeSingle()
 
   if (existingError) {

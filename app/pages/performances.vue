@@ -26,7 +26,7 @@ const loadServices = async () => {
 // 카테고리/장르 선택지 — /catalog-taxonomies(super_admin 전용 관리화면)에서 관리되는 값을
 // public_read RLS로 그대로 읽어온다(서비스 목록과 동일한 패턴).
 const loadTaxonomies = async () => {
-  const { data } = await supabase.from('catalog_taxonomies').select('id, type, label').order('sort_order').order('label')
+  const { data } = await supabase.from('catalog_taxonomies').select('id, type, label').eq('deleted', false).eq('activated', true).order('sort_order').order('label')
   categories.value = (data ?? []).filter(t => t.type === 'category').map(t => ({ id: t.id, label: t.label }))
   genres.value = (data ?? []).filter(t => t.type === 'genre').map(t => ({ id: t.id, label: t.label }))
 }

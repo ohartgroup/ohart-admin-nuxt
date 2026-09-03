@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
     .from('admin_accounts')
     .select('id, status, user_id, department:departments!admin_accounts_department_id_fkey(id, name), role_assignments!role_assignments_admin_account_id_fkey(id, role_type, service_id)')
     .eq('status', 'active')
+    .eq('deleted', false)
     .eq('role_assignments.deleted', false)
     .order('created_at', { ascending: true })
 
@@ -19,8 +20,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const [{ data: users, error: usersError }, { data: services, error: servicesError }] = await Promise.all([
-    client.from('users').select('id, email, display_name').in('id', accounts.map(a => a.user_id)),
-    client.from('services').select('id, name'),
+    client.from('users').select('id, email, display_name').in('id', accounts.map(a => a.user_id)).eq('deleted', false),
+    client.from('services').select('id, name').eq('deleted', false),
   ])
 
   if (usersError) {

@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
     .from('performance_catalog')
     .select('product_id, creator_id, audience_age, genre_id, duration_minutes, description, images, performance_type, products!inner(name, price, category_id, status, service_id)')
     .eq('deleted', false)
+    .eq('products.deleted', false)
     .order('created_at', { ascending: false })
 
   if (productIdsInScope) {

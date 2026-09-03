@@ -17,6 +17,7 @@ export const requireDepartmentManager = async (event: H3Event) => {
     .from('admin_accounts')
     .select('id, status, role_assignments!role_assignments_admin_account_id_fkey(role_type)')
     .eq('user_id', user.sub)
+    .eq('deleted', false)
     .eq('role_assignments.deleted', false)
     .maybeSingle()
 
@@ -31,6 +32,7 @@ export const requireDepartmentManager = async (event: H3Event) => {
     .from('departments')
     .select('id')
     .eq('manager_admin_account_id', account.id)
+    .eq('deleted', false)
 
   const managedDepartmentIds = (managedDepartments ?? []).map(d => d.id)
 

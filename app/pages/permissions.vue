@@ -51,7 +51,7 @@ const loadAccounts = async () => {
 }
 
 const loadServices = async () => {
-  const { data } = await supabase.from('services').select('id, name').order('name')
+  const { data } = await supabase.from('services').select('id, name').eq('deleted', false).order('name')
   services.value = (data ?? []).map(s => ({ label: s.name, value: s.id }))
 }
 

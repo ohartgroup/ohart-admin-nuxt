@@ -29,8 +29,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const [{ data: users, error: usersError }, { data: services, error: servicesError }] = await Promise.all([
-    client.from('users').select('id, email, display_name').in('id', accounts.map(a => a.user_id)),
-    client.from('services').select('id, name'),
+    client.from('users').select('id, email, display_name').in('id', accounts.map(a => a.user_id)).eq('deleted', false),
+    client.from('services').select('id, name').eq('deleted', false),
   ])
 
   if (usersError) {

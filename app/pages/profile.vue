@@ -24,7 +24,7 @@ const syncFromAccount = () => {
 }
 
 const loadServices = async () => {
-  const { data } = await supabase.from('services').select('id, name')
+  const { data } = await supabase.from('services').select('id, name').eq('deleted', false)
   services.value = data ?? []
 }
 
