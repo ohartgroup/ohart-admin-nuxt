@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PerformanceType } from '~/types/performance'
+import type { AudienceAgeRange, PerformanceType } from '~/types/performance'
 
 // 등록 폼과 수정 폼이 필드 구성을 그대로 공유한다(performances.vue에서 둘 다 이 컴포넌트를 쓴다).
 // productId가 null이면(신규 등록, 저장 전) 이미지는 로컬에 쌓아뒀다가 부모가
@@ -16,7 +16,7 @@ const price = defineModel<number>('price', { required: true })
 const categoryId = defineModel<string | undefined>('categoryId', { required: true })
 const serviceId = defineModel<string>('serviceId', { required: true })
 const exposedServiceIds = defineModel<string[]>('exposedServiceIds', { required: true })
-const audienceAge = defineModel<string>('audienceAge', { required: true })
+const audienceAge = defineModel<AudienceAgeRange | undefined>('audienceAge', { required: true })
 const genreId = defineModel<string | undefined>('genreId', { required: true })
 const durationMinutes = defineModel<number | null>('durationMinutes', { required: true })
 const description = defineModel<string>('description', { required: true })
@@ -24,16 +24,17 @@ const performanceType = defineModel<PerformanceType | undefined>('performanceTyp
 const images = defineModel<string[]>('images', { required: true })
 
 // 연령대는 자유입력을 받으면 "20대", "20", "이십대" 등 표기가 제각각이라 필터/통계에 못 쓴다 —
-// 10년 단위 고정 선택지로 제한한다.
-const audienceAgeOptions = [
-  { label: '전체', value: '전체' },
-  { label: '10대', value: '10대' },
-  { label: '20대', value: '20대' },
-  { label: '30대', value: '30대' },
-  { label: '40대', value: '40대' },
-  { label: '50대', value: '50대' },
-  { label: '60대', value: '60대' },
-  { label: '70대 이상', value: '70대 이상' },
+// 10년 단위 고정 선택지로 제한한다. DB엔 영문 코드(audience_age_range ENUM)로 저장하고
+// 화면 라벨은 여기서만 한글로 보여준다(performance_type과 동일 패턴).
+const audienceAgeOptions: { label: string, value: AudienceAgeRange }[] = [
+  { label: '전체', value: 'all' },
+  { label: '10대', value: '10s' },
+  { label: '20대', value: '20s' },
+  { label: '30대', value: '30s' },
+  { label: '40대', value: '40s' },
+  { label: '50대', value: '50s' },
+  { label: '60대', value: '60s' },
+  { label: '70대 이상', value: '70s_plus' },
 ]
 
 const imageUploaderRef = useTemplateRef('imageUploaderRef')

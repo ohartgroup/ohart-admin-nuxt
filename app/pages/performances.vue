@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PerformanceListItem, PerformanceType, ProductStatus } from '~/types/performance'
+import type { AudienceAgeRange, PerformanceListItem, PerformanceType, ProductStatus } from '~/types/performance'
 
 definePageMeta({ layout: 'default', title: '공연작품 관리' })
 
@@ -64,7 +64,7 @@ const draftPrice = ref<number>(0)
 const draftCategoryId = ref<string | undefined>(undefined)
 const draftServiceId = ref('')
 const draftExposedServiceIds = ref<string[]>([])
-const draftAudienceAge = ref('')
+const draftAudienceAge = ref<AudienceAgeRange | undefined>(undefined)
 const draftGenreId = ref<string | undefined>(undefined)
 const draftDurationMinutes = ref<number | null>(null)
 const draftDescription = ref('')
@@ -78,7 +78,7 @@ const startNewPerformance = () => {
   draftCategoryId.value = undefined
   draftServiceId.value = services.value[0]?.id ?? ''
   draftExposedServiceIds.value = draftServiceId.value ? [draftServiceId.value] : []
-  draftAudienceAge.value = ''
+  draftAudienceAge.value = undefined
   draftGenreId.value = undefined
   draftDurationMinutes.value = null
   draftDescription.value = ''
@@ -104,7 +104,7 @@ const submitNewPerformance = async () => {
         categoryId: draftCategoryId.value,
         serviceId: draftServiceId.value,
         exposedServiceIds: draftExposedServiceIds.value,
-        audienceAge: draftAudienceAge.value || undefined,
+        audienceAge: draftAudienceAge.value,
         genreId: draftGenreId.value,
         durationMinutes: draftDurationMinutes.value ?? undefined,
         description: draftDescription.value || undefined,
@@ -136,7 +136,7 @@ const editCategoryId = ref<string | undefined>(undefined)
 const editStatus = ref<ProductStatus>('draft')
 const editServiceId = ref('')
 const editExposedServiceIds = ref<string[]>([])
-const editAudienceAge = ref('')
+const editAudienceAge = ref<AudienceAgeRange | undefined>(undefined)
 const editGenreId = ref<string | undefined>(undefined)
 const editDurationMinutes = ref<number | null>(null)
 const editDescription = ref('')
@@ -152,7 +152,7 @@ const openEditForm = (row: PerformanceListItem) => {
   editStatus.value = row.status
   editServiceId.value = row.service_id
   editExposedServiceIds.value = [...row.exposed_service_ids]
-  editAudienceAge.value = row.audience_age ?? ''
+  editAudienceAge.value = row.audience_age ?? undefined
   editGenreId.value = row.genre_id ?? undefined
   editDurationMinutes.value = row.duration_minutes
   editDescription.value = row.description ?? ''
@@ -180,7 +180,7 @@ const submitEditPerformance = async () => {
         status: editStatus.value,
         serviceId: editServiceId.value,
         exposedServiceIds: editExposedServiceIds.value,
-        audienceAge: editAudienceAge.value || undefined,
+        audienceAge: editAudienceAge.value,
         genreId: editGenreId.value,
         durationMinutes: editDurationMinutes.value ?? undefined,
         description: editDescription.value || undefined,

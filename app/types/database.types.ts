@@ -1169,7 +1169,7 @@ export type Database = {
       performance_catalog: {
         Row: {
           activated: boolean
-          audience_age: string | null
+          audience_age: Database['public']['Enums']['audience_age_range'] | null
           created_at: string
           creator_id: string | null
           deleted: boolean
@@ -1187,7 +1187,9 @@ export type Database = {
         }
         Insert: {
           activated?: boolean
-          audience_age?: string | null
+          audience_age?:
+            | Database['public']['Enums']['audience_age_range']
+            | null
           created_at?: string
           creator_id?: string | null
           deleted?: boolean
@@ -1205,7 +1207,9 @@ export type Database = {
         }
         Update: {
           activated?: boolean
-          audience_age?: string | null
+          audience_age?:
+            | Database['public']['Enums']['audience_age_range']
+            | null
           created_at?: string
           creator_id?: string | null
           deleted?: boolean
@@ -1706,6 +1710,15 @@ export type Database = {
       encrypt_pii: { Args: { p_plain: string }, Returns: string }
     }
     Enums: {
+      audience_age_range:
+        | 'all'
+        | '10s'
+        | '20s'
+        | '30s'
+        | '40s'
+        | '50s'
+        | '60s'
+        | '70s_plus'
       booking_status: 'reserved' | 'confirmed' | 'canceled' | 'completed'
       payment_method: 'corporate_card' | 'bank_transfer' | 'invoice'
       payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded'
@@ -1875,6 +1888,16 @@ export const Constants = {
   },
   public: {
     Enums: {
+      audience_age_range: [
+        'all',
+        '10s',
+        '20s',
+        '30s',
+        '40s',
+        '50s',
+        '60s',
+        '70s_plus',
+      ],
       booking_status: ['reserved', 'confirmed', 'canceled', 'completed'],
       payment_method: ['corporate_card', 'bank_transfer', 'invoice'],
       payment_status: ['pending', 'succeeded', 'failed', 'refunded'],
