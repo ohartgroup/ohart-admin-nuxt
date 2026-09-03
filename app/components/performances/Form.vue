@@ -16,7 +16,7 @@ const price = defineModel<number>('price', { required: true })
 const categoryId = defineModel<string | undefined>('categoryId', { required: true })
 const serviceId = defineModel<string>('serviceId', { required: true })
 const exposedServiceIds = defineModel<string[]>('exposedServiceIds', { required: true })
-const audienceAge = defineModel<AudienceAgeRange | undefined>('audienceAge', { required: true })
+const audienceAge = defineModel<AudienceAgeRange[]>('audienceAge', { required: true })
 const genreId = defineModel<string | undefined>('genreId', { required: true })
 const durationMinutes = defineModel<number | null>('durationMinutes', { required: true })
 const description = defineModel<string>('description', { required: true })
@@ -51,7 +51,7 @@ const validate = () => {
   if (exposedServiceIds.value.length === 0) next.exposedServiceIds = '하나 이상 선택해주세요.'
   if (!categoryId.value) next.categoryId = '필수 항목입니다.'
   if (!genreId.value) next.genreId = '필수 항목입니다.'
-  if (!audienceAge.value) next.audienceAge = '필수 항목입니다.'
+  if (audienceAge.value.length === 0) next.audienceAge = '하나 이상 선택해주세요.'
   if (durationMinutes.value === null || durationMinutes.value === undefined) {
     next.durationMinutes = '필수 항목입니다.'
   } else if (durationMinutes.value % 5 !== 0) {
@@ -206,7 +206,8 @@ const toggleExposedService = (id: string) => {
         <USelect
           v-model="audienceAge"
           :items="audienceAgeOptions"
-          placeholder="연령대 선택"
+          multiple
+          placeholder="연령대 선택 (복수 선택 가능)"
           aria-label="관객 연령대"
           class="w-full"
         />

@@ -1169,7 +1169,9 @@ export type Database = {
       performance_catalog: {
         Row: {
           activated: boolean
-          audience_age: Database['public']['Enums']['audience_age_range'] | null
+          audience_age:
+            | Database['public']['Enums']['audience_age_range'][]
+            | null
           created_at: string
           creator_id: string | null
           deleted: boolean
@@ -1188,7 +1190,7 @@ export type Database = {
         Insert: {
           activated?: boolean
           audience_age?:
-            | Database['public']['Enums']['audience_age_range']
+            | Database['public']['Enums']['audience_age_range'][]
             | null
           created_at?: string
           creator_id?: string | null
@@ -1208,7 +1210,7 @@ export type Database = {
         Update: {
           activated?: boolean
           audience_age?:
-            | Database['public']['Enums']['audience_age_range']
+            | Database['public']['Enums']['audience_age_range'][]
             | null
           created_at?: string
           creator_id?: string | null

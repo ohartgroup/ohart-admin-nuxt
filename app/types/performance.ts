@@ -10,7 +10,7 @@ export interface PerformanceListItem {
   category_id: string | null
   status: ProductStatus
   service_id: string
-  audience_age: AudienceAgeRange | null
+  audience_age: AudienceAgeRange[] | null
   genre_id: string | null
   duration_minutes: number | null
   description: string | null
