@@ -1,4 +1,4 @@
-import type { PerformanceType, ProductStatus } from '~/types/performance'
+import type { AudienceAgeRange, PerformanceType, ProductStatus } from '~/types/performance'
 import type { Json } from '~/types/database.types'
 
 interface CreatePerformanceBody {
@@ -8,7 +8,7 @@ interface CreatePerformanceBody {
   status?: ProductStatus
   serviceId: string
   exposedServiceIds: string[]
-  audienceAge?: string
+  audienceAge?: AudienceAgeRange
   genreId?: string
   durationMinutes?: number
   description?: string
