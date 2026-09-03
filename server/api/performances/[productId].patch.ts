@@ -8,7 +8,7 @@ interface UpdatePerformanceBody {
   status?: ProductStatus
   serviceId: string
   exposedServiceIds: string[]
-  audienceAge?: AudienceAgeRange
+  audienceAge?: AudienceAgeRange[]
   genreId?: string
   durationMinutes?: number
   description?: string
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   if (
     !body?.name || body.price == null || !body?.serviceId
     || !body?.exposedServiceIds?.length || !body?.categoryId || !body?.genreId
-    || !body?.audienceAge || body.durationMinutes == null || !body?.performanceType
+    || !body?.audienceAge?.length || body.durationMinutes == null || !body?.performanceType
     || !body?.description || !Array.isArray(body.images) || body.images.length === 0
   ) {
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: '모든 항목은 필수입니다.' })
