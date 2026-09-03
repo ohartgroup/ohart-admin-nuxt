@@ -17,20 +17,27 @@ const taxonomies = ref<Taxonomy[]>([])
 const loading = ref(false)
 const newLabel = ref('')
 const creating = ref(false)
+// 오작동 삭제 대비 — 켜면 deleted=true인 항목도 같이 불러와서 복구할 수 있게 한다.
+const showDeleted = ref(false)
 
-// 카테고리/장르 둘 다 한 테이블(catalog_taxonomies)에 type으로 구분해 담겨 있어서,
+// 카테고리/장르 둘 다 한 테이블(catalog_taxonomies)에 type으로 담겨 있어서,
 // 화면에서는 activeType으로 필터링만 하고 실제 로드는 한 번에 전부 해온다(departments.vue와 동일 패턴).
 const filteredTaxonomies = computed(() => taxonomies.value.filter(t => t.type === activeType.value))
 
 const loadTaxonomies = async () => {
   loading.value = true
-  const { data, error } = await supabase
+  let query = supabase
     .from('catalog_taxonomies')
     .select('*')
-    .eq('deleted', false)
     .order('type')
     .order('sort_order')
     .order('label')
+
+  if (!showDeleted.value) {
+    query = query.eq('deleted', false)
+  }
+
+  const { data, error } = await query
 
   if (error) {
     toast.add({ title: '목록을 불러오지 못했습니다.', description: error.message, color: 'error' })
@@ -40,6 +47,7 @@ const loadTaxonomies = async () => {
 }
 
 onMounted(loadTaxonomies)
+watch(showDeleted, loadTaxonomies)
 
 const createTaxonomy = async () => {
   if (!newLabel.value.trim()) {
@@ -91,6 +99,20 @@ const deleteTaxonomy = async (taxonomy: Taxonomy) => {
   await loadTaxonomies()
 }
 
+const restoreTaxonomy = async (taxonomy: Taxonomy) => {
+  const { error } = await supabase
+    .from('catalog_taxonomies')
+    .update({ deleted: false })
+    .eq('id', taxonomy.id)
+
+  if (error) {
+    toast.add({ title: '복구에 실패했습니다.', description: error.message, color: 'error' })
+    return
+  }
+  toast.add({ title: '복구되었습니다.', color: 'success' })
+  await loadTaxonomies()
+}
+
 const columns = [
   { accessorKey: 'label', header: '이름' },
   { accessorKey: 'activated', header: '상태' },
@@ -112,13 +134,19 @@ const columns = [
         공연작품 등록 폼의 카테고리·장르 선택지를 관리합니다. artboda·stub·예술학교가 공통으로 사용합니다.
       </p>
 
-      <div class="flex gap-2">
-        <UButton
-          v-for="(label, type) in typeLabels"
-          :key="type"
-          :label="label"
-          :variant="activeType === type ? 'solid' : 'soft'"
-          @click="activeType = type"
+      <div class="flex items-center justify-between">
+        <div class="flex gap-2">
+          <UButton
+            v-for="(label, type) in typeLabels"
+            :key="type"
+            :label="label"
+            :variant="activeType === type ? 'solid' : 'soft'"
+            @click="activeType = type"
+          />
+        </div>
+        <UCheckbox
+          v-model="showDeleted"
+          label="삭제된 항목 보기"
         />
       </div>
 
@@ -152,6 +180,13 @@ const columns = [
       >
         <template #activated-cell="{ row }">
           <UBadge
+            v-if="row.original.deleted"
+            label="삭제됨"
+            color="error"
+            variant="subtle"
+          />
+          <UBadge
+            v-else
             :label="row.original.activated ? '사용' : '미사용'"
             :color="row.original.activated ? 'success' : 'neutral'"
             variant="subtle"
@@ -159,7 +194,19 @@ const columns = [
         </template>
 
         <template #actions-cell="{ row }">
-          <div class="flex gap-1">
+          <UButton
+            v-if="row.original.deleted"
+            label="복구"
+            icon="i-lucide-rotate-ccw"
+            size="xs"
+            variant="soft"
+            color="primary"
+            @click="restoreTaxonomy(row.original)"
+          />
+          <div
+            v-else
+            class="flex gap-1"
+          >
             <UButton
               :label="row.original.activated ? '비활성화' : '활성화'"
               size="xs"
