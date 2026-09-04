@@ -414,7 +414,7 @@ export type Database = {
           agreed_to_marketing: boolean
           agreed_to_privacy: boolean
           attachments: Json
-          budget_range: string | null
+          budget_range_id: string | null
           catalog_product_id: string | null
           contact_department: string | null
           contact_email: string | null
@@ -426,10 +426,10 @@ export type Database = {
           desired_schedule: string | null
           expected_audience: number | null
           id: string
-          inquiry_type: Database['artboda']['Enums']['inquiry_type'] | null
+          inquiry_type_id: string | null
           message: string | null
+          organization_category_id: string | null
           organization_name: string | null
-          organization_type: Database['artboda']['Enums']['org_type'] | null
           payment_preference:
             | Database['artboda']['Enums']['payment_preference']
             | null
@@ -451,7 +451,7 @@ export type Database = {
           agreed_to_marketing?: boolean
           agreed_to_privacy?: boolean
           attachments?: Json
-          budget_range?: string | null
+          budget_range_id?: string | null
           catalog_product_id?: string | null
           contact_department?: string | null
           contact_email?: string | null
@@ -463,10 +463,10 @@ export type Database = {
           desired_schedule?: string | null
           expected_audience?: number | null
           id?: string
-          inquiry_type?: Database['artboda']['Enums']['inquiry_type'] | null
+          inquiry_type_id?: string | null
           message?: string | null
+          organization_category_id?: string | null
           organization_name?: string | null
-          organization_type?: Database['artboda']['Enums']['org_type'] | null
           payment_preference?:
             | Database['artboda']['Enums']['payment_preference']
             | null
@@ -488,7 +488,7 @@ export type Database = {
           agreed_to_marketing?: boolean
           agreed_to_privacy?: boolean
           attachments?: Json
-          budget_range?: string | null
+          budget_range_id?: string | null
           catalog_product_id?: string | null
           contact_department?: string | null
           contact_email?: string | null
@@ -500,10 +500,10 @@ export type Database = {
           desired_schedule?: string | null
           expected_audience?: number | null
           id?: string
-          inquiry_type?: Database['artboda']['Enums']['inquiry_type'] | null
+          inquiry_type_id?: string | null
           message?: string | null
+          organization_category_id?: string | null
           organization_name?: string | null
-          organization_type?: Database['artboda']['Enums']['org_type'] | null
           payment_preference?:
             | Database['artboda']['Enums']['payment_preference']
             | null
@@ -519,6 +519,70 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'inquiries_budget_range_id_fkey'
+            columns: ['budget_range_id']
+            isOneToOne: false
+            referencedRelation: 'inquiry_options'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inquiries_inquiry_type_id_fkey'
+            columns: ['inquiry_type_id']
+            isOneToOne: false
+            referencedRelation: 'inquiry_options'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inquiries_organization_category_id_fkey'
+            columns: ['organization_category_id']
+            isOneToOne: false
+            referencedRelation: 'inquiry_options'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      inquiry_options: {
+        Row: {
+          activated: boolean
+          code: string
+          created_at: string
+          deleted: boolean
+          id: string
+          label: string
+          slug: string
+          sort_order: number
+          type: string
+          update_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated?: boolean
+          code: string
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          label: string
+          slug: string
+          sort_order?: number
+          type: string
+          update_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated?: boolean
+          code?: string
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          label?: string
+          slug?: string
+          sort_order?: number
+          type?: string
+          update_user_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -746,12 +810,6 @@ export type Database = {
         | 'quoted'
         | 'converted'
         | 'closed'
-      inquiry_type:
-        | 'custom_performance'
-        | 'catalog_performance'
-        | 'estimate'
-        | 'partnership'
-        | 'other'
       org_type:
         | 'kindergarten'
         | 'school'
@@ -1941,13 +1999,6 @@ export const Constants = {
         'quoted',
         'converted',
         'closed',
-      ],
-      inquiry_type: [
-        'custom_performance',
-        'catalog_performance',
-        'estimate',
-        'partnership',
-        'other',
       ],
       org_type: [
         'kindergarten',
