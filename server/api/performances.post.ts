@@ -4,7 +4,7 @@ import type { Json } from '~/types/database.types'
 interface CreatePerformanceBody {
   name: string
   price: number
-  categoryId?: string
+  themeId?: string
   status?: ProductStatus
   serviceId: string
   exposedServiceIds: string[]
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   // (POST 성공 후 productId를 받아야 업로드 가능) 이 요청엔 애초에 포함되지 않는다.
   if (
     !body?.name || body.price == null || !body?.serviceId
-    || !body?.exposedServiceIds?.length || !body?.categoryId || !body?.genreId
+    || !body?.exposedServiceIds?.length || !body?.themeId || !body?.genreId
     || !body?.audienceAge?.length || body.durationMinutes == null || !body?.performanceTypeId
     || !body?.description
   ) {
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
     .insert({
       name: body.name,
       price: body.price,
-      category_id: body.categoryId ?? null,
+      theme_id: body.themeId ?? null,
       status: body.status ?? 'draft',
       service_id: body.serviceId,
     })

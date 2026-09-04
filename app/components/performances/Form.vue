@@ -6,7 +6,7 @@ import type { AudienceAgeRange } from '~/types/performance'
 // flushPendingUploads(productId)를 호출할 때 업로드된다 — PerformancesImageUploader 참고.
 const props = defineProps<{
   services: { id: string, name: string }[]
-  categories: { id: string, label: string }[]
+  themes: { id: string, label: string }[]
   genres: { id: string, label: string }[]
   performanceTypes: { id: string, label: string }[]
   productId: string | null
@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const name = defineModel<string>('name', { required: true })
 const price = defineModel<number>('price', { required: true })
-const categoryId = defineModel<string | undefined>('categoryId', { required: true })
+const themeId = defineModel<string | undefined>('themeId', { required: true })
 const serviceId = defineModel<string>('serviceId', { required: true })
 const exposedServiceIds = defineModel<string[]>('exposedServiceIds', { required: true })
 const audienceAge = defineModel<AudienceAgeRange[]>('audienceAge', { required: true })
@@ -26,7 +26,7 @@ const images = defineModel<string[]>('images', { required: true })
 
 // 연령대는 자유입력을 받으면 "20대", "20", "이십대" 등 표기가 제각각이라 필터/통계에 못 쓴다 —
 // 10년 단위 고정 선택지로 제한한다. DB엔 영문 코드(audience_age_range ENUM)로 저장하고
-// 화면 라벨은 여기서만 한글로 보여준다. (공연구분은 카테고리/장르와 마찬가지로 어드민에서
+// 화면 라벨은 여기서만 한글로 보여준다. (공연구분은 테마/장르와 마찬가지로 어드민에서
 // 관리하는 값이라 하드코딩 없이 props.performanceTypes를 그대로 쓴다.)
 const audienceAgeOptions: { label: string, value: AudienceAgeRange }[] = [
   { label: '전체', value: 'all' },
@@ -51,7 +51,7 @@ const validate = () => {
   if (price.value === null || price.value === undefined || Number.isNaN(price.value)) next.price = '필수 항목입니다.'
   if (!serviceId.value) next.serviceId = '필수 항목입니다.'
   if (exposedServiceIds.value.length === 0) next.exposedServiceIds = '하나 이상 선택해주세요.'
-  if (!categoryId.value) next.categoryId = '필수 항목입니다.'
+  if (!themeId.value) next.themeId = '필수 항목입니다.'
   if (!genreId.value) next.genreId = '필수 항목입니다.'
   if (audienceAge.value.length === 0) next.audienceAge = '하나 이상 선택해주세요.'
   if (durationMinutes.value === null || durationMinutes.value === undefined) {
@@ -136,7 +136,7 @@ const toggleExposedService = (id: string) => {
       />
     </UFormField>
 
-    <!-- 3행: 가격/카테고리/장르 -->
+    <!-- 3행: 가격/테마/장르 -->
     <div class="flex gap-2">
       <UFormField
         label="가격"
@@ -150,24 +150,24 @@ const toggleExposedService = (id: string) => {
         />
       </UFormField>
       <UFormField
-        label="카테고리"
+        label="테마"
         class="flex-1"
         required
-        :error="errors.categoryId"
+        :error="errors.themeId"
       >
         <USelect
-          v-model="categoryId"
-          :items="categories.map(c => ({ label: c.label, value: c.id }))"
-          placeholder="카테고리 선택"
-          aria-label="카테고리"
+          v-model="themeId"
+          :items="themes.map(c => ({ label: c.label, value: c.id }))"
+          placeholder="테마 선택"
+          aria-label="테마"
           class="w-full"
         >
           <template
-            v-if="categories.length === 0"
+            v-if="themes.length === 0"
             #content-top
           >
             <p class="px-2 py-1.5 text-xs text-muted">
-              등록된 카테고리가 없습니다
+              등록된 테마가 없습니다
             </p>
           </template>
         </USelect>

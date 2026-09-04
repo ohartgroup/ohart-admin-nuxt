@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import type { Database } from '~/types/database.types'
 
-definePageMeta({ layout: 'default', title: '카테고리/장르/공연구분 관리' })
+definePageMeta({ layout: 'default', title: '테마/장르/공연구분 관리' })
 
 type Taxonomy = Database['public']['Tables']['catalog_taxonomies']['Row']
-type TaxonomyType = 'category' | 'genre' | 'performance_type'
+type TaxonomyType = 'theme' | 'genre' | 'performance_type'
 
-const typeLabels: Record<TaxonomyType, string> = { category: '카테고리', genre: '장르', performance_type: '공연구분' }
+const typeLabels: Record<TaxonomyType, string> = { theme: '테마', genre: '장르', performance_type: '공연구분' }
+
+// 타입별 코드 채번 prefix — "PTC001"처럼 <3글자 prefix><3자리 일련번호> 규칙(0036~0037).
+const codePrefixes: Record<TaxonomyType, string> = { theme: 'THC', genre: 'GRC', performance_type: 'PTC' }
 
 const supabase = useSupabaseClient<Database>()
 const { isSuperAdmin, loaded } = useAdminAuth()
 const toast = useToast()
 
-const activeType = ref<TaxonomyType>('category')
+const activeType = ref<TaxonomyType>('theme')
 const taxonomies = ref<Taxonomy[]>([])
 const loading = ref(false)
 const newLabel = ref('')
@@ -49,14 +52,32 @@ const loadTaxonomies = async () => {
 onMounted(loadTaxonomies)
 watch(showDeleted, loadTaxonomies)
 
+// unique(type, code) 제약이 deleted 여부와 무관하게 걸려있어서(0036) 삭제된 코드는
+// 구조적으로 재사용이 불가능하다 — 그래서 다음 번호도 deleted 필터 없이 전체 row 기준으로 봐야
+// "이미 삭제됐지만 존재하는" 번호와 충돌하지 않는다.
+const nextCode = async (type: TaxonomyType) => {
+  const prefix = codePrefixes[type]
+  const { data } = await supabase
+    .from('catalog_taxonomies')
+    .select('code')
+    .eq('type', type)
+    .not('code', 'is', null)
+    .order('code', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const lastNumber = data?.code ? Number.parseInt(data.code.slice(prefix.length), 10) : 0
+  return `${prefix}${String(lastNumber + 1).padStart(3, '0')}`
+}
+
 const createTaxonomy = async () => {
   if (!newLabel.value.trim()) {
     return
   }
   creating.value = true
+  const code = await nextCode(activeType.value)
   const { error } = await supabase
     .from('catalog_taxonomies')
-    .insert({ type: activeType.value, label: newLabel.value.trim() })
+    .insert({ type: activeType.value, label: newLabel.value.trim(), code })
   creating.value = false
 
   if (error) {
@@ -114,6 +135,7 @@ const restoreTaxonomy = async (taxonomy: Taxonomy) => {
 }
 
 const columns = [
+  { accessorKey: 'code', header: '코드' },
   { accessorKey: 'label', header: '이름' },
   { accessorKey: 'activated', header: '상태' },
   { accessorKey: 'actions', header: '작업' },
@@ -125,13 +147,13 @@ const columns = [
     <UPageCard
       v-if="loaded && !isSuperAdmin"
       title="접근 권한이 없습니다"
-      description="카테고리/장르/공연구분 관리는 Super Admin만 사용할 수 있습니다."
+      description="테마/장르/공연구분 관리는 Super Admin만 사용할 수 있습니다."
       icon="i-lucide-lock"
     />
 
     <template v-else>
       <p class="text-sm text-muted">
-        공연작품 등록 폼의 카테고리·장르·공연구분 선택지를 관리합니다. artboda·stub·예술학교가 공통으로 사용합니다.
+        공연작품 등록 폼의 테마·장르·공연구분 선택지를 관리합니다. artboda·stub·예술학교가 공통으로 사용합니다.
       </p>
 
       <div class="flex items-center justify-between">
@@ -179,6 +201,10 @@ const columns = [
         :search-keys="['label']"
         search-placeholder="이름 검색"
       >
+        <template #code-cell="{ row }">
+          <span class="text-sm text-muted font-mono">{{ row.original.code ?? '-' }}</span>
+        </template>
+
         <template #activated-cell="{ row }">
           <UBadge
             v-if="row.original.deleted"

@@ -39,9 +39,9 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
     const catalogGroupChildren: NavigationMenuItem[] = [
       { label: '공연작품 관리', icon: 'i-lucide-drama', to: '/performances' },
     ]
-    // 카테고리/장르/공연구분은 전사 공통 마스터 데이터라 super_admin만 관리(RLS admin_write와 동일 기준).
+    // 테마/장르/공연구분은 전사 공통 마스터 데이터라 super_admin만 관리(RLS admin_write와 동일 기준).
     if (isSuperAdmin.value) {
-      catalogGroupChildren.push({ label: '카테고리/장르/공연구분 관리', icon: 'i-lucide-tags', to: '/catalog-taxonomies' })
+      catalogGroupChildren.push({ label: '테마/장르/공연구분 관리', icon: 'i-lucide-tags', to: '/catalog-taxonomies' })
     }
     primary.push({
       label: '공용',

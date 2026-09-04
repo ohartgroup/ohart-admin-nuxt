@@ -4,7 +4,7 @@ import type { Json } from '~/types/database.types'
 interface UpdatePerformanceBody {
   name: string
   price: number
-  categoryId?: string
+  themeId?: string
   status?: ProductStatus
   serviceId: string
   exposedServiceIds: string[]
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   // (등록과 달리 productId가 이미 있어서 즉시 업로드되므로) — 그래서 여기선 images도 검사.
   if (
     !body?.name || body.price == null || !body?.serviceId
-    || !body?.exposedServiceIds?.length || !body?.categoryId || !body?.genreId
+    || !body?.exposedServiceIds?.length || !body?.themeId || !body?.genreId
     || !body?.audienceAge?.length || body.durationMinutes == null || !body?.performanceTypeId
     || !body?.description || !Array.isArray(body.images) || body.images.length === 0
   ) {
@@ -78,7 +78,7 @@ export default defineEventHandler(async (event) => {
     .update({
       name: body.name,
       price: body.price,
-      category_id: body.categoryId ?? null,
+      theme_id: body.themeId ?? null,
       status: body.status ?? 'draft',
       service_id: body.serviceId,
     })

@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
 
   let catalogQuery = client
     .from('performance_catalog')
-    .select('product_id, deleted, creator_id, audience_age, genre_id, duration_minutes, description, images, performance_type_id, products!inner(name, price, category_id, status, service_id, deleted)')
+    .select('product_id, deleted, creator_id, audience_age, genre_id, duration_minutes, description, images, performance_type_id, products!inner(name, price, theme_id, status, service_id, deleted)')
     .order('created_at', { ascending: false })
 
   if (!includeDeleted) {
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
     deleted: c.deleted || c.products.deleted,
     name: c.products.name,
     price: c.products.price,
-    category_id: c.products.category_id,
+    theme_id: c.products.theme_id,
     status: c.products.status,
     service_id: c.products.service_id,
     audience_age: c.audience_age,

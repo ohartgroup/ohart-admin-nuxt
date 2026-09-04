@@ -411,22 +411,36 @@ export type Database = {
       inquiries: {
         Row: {
           activated: boolean
+          agreed_to_marketing: boolean
           agreed_to_privacy: boolean
+          attachments: Json
           budget_range: string | null
+          catalog_product_id: string | null
           contact_department: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone_encrypted: string | null
+          contact_title: string | null
           created_at: string
           deleted: boolean
           desired_schedule: string | null
           expected_audience: number | null
           id: string
+          inquiry_type: Database['artboda']['Enums']['inquiry_type'] | null
+          message: string | null
+          organization_name: string | null
+          organization_type: Database['artboda']['Enums']['org_type'] | null
+          payment_preference:
+            | Database['artboda']['Enums']['payment_preference']
+            | null
           performance_count: number | null
           reference_code: string
           requested_documents: Json | null
           status: Database['artboda']['Enums']['inquiry_status']
           target_audience: string | null
+          tax_invoice_required:
+            | Database['artboda']['Enums']['tax_invoice_option']
+            | null
           update_user_id: string | null
           updated_at: string
           user_id: string | null
@@ -434,22 +448,36 @@ export type Database = {
         }
         Insert: {
           activated?: boolean
+          agreed_to_marketing?: boolean
           agreed_to_privacy?: boolean
+          attachments?: Json
           budget_range?: string | null
+          catalog_product_id?: string | null
           contact_department?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone_encrypted?: string | null
+          contact_title?: string | null
           created_at?: string
           deleted?: boolean
           desired_schedule?: string | null
           expected_audience?: number | null
           id?: string
+          inquiry_type?: Database['artboda']['Enums']['inquiry_type'] | null
+          message?: string | null
+          organization_name?: string | null
+          organization_type?: Database['artboda']['Enums']['org_type'] | null
+          payment_preference?:
+            | Database['artboda']['Enums']['payment_preference']
+            | null
           performance_count?: number | null
           reference_code: string
           requested_documents?: Json | null
           status?: Database['artboda']['Enums']['inquiry_status']
           target_audience?: string | null
+          tax_invoice_required?:
+            | Database['artboda']['Enums']['tax_invoice_option']
+            | null
           update_user_id?: string | null
           updated_at?: string
           user_id?: string | null
@@ -457,22 +485,36 @@ export type Database = {
         }
         Update: {
           activated?: boolean
+          agreed_to_marketing?: boolean
           agreed_to_privacy?: boolean
+          attachments?: Json
           budget_range?: string | null
+          catalog_product_id?: string | null
           contact_department?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone_encrypted?: string | null
+          contact_title?: string | null
           created_at?: string
           deleted?: boolean
           desired_schedule?: string | null
           expected_audience?: number | null
           id?: string
+          inquiry_type?: Database['artboda']['Enums']['inquiry_type'] | null
+          message?: string | null
+          organization_name?: string | null
+          organization_type?: Database['artboda']['Enums']['org_type'] | null
+          payment_preference?:
+            | Database['artboda']['Enums']['payment_preference']
+            | null
           performance_count?: number | null
           reference_code?: string
           requested_documents?: Json | null
           status?: Database['artboda']['Enums']['inquiry_status']
           target_audience?: string | null
+          tax_invoice_required?:
+            | Database['artboda']['Enums']['tax_invoice_option']
+            | null
           update_user_id?: string | null
           updated_at?: string
           user_id?: string | null
@@ -698,7 +740,18 @@ export type Database = {
         | 'transaction_statement'
         | 'receipt'
         | 'tax_invoice'
-      inquiry_status: 'submitted' | 'quoted' | 'converted' | 'closed'
+      inquiry_status:
+        | 'submitted'
+        | 'reviewing'
+        | 'quoted'
+        | 'converted'
+        | 'closed'
+      inquiry_type:
+        | 'custom_performance'
+        | 'catalog_performance'
+        | 'estimate'
+        | 'partnership'
+        | 'other'
       org_type:
         | 'kindergarten'
         | 'school'
@@ -706,6 +759,8 @@ export type Database = {
         | 'company'
         | 'individual_business'
         | 'other'
+      payment_preference: 'split' | 'full' | 'postpaid' | 'decide_after_consult'
+      tax_invoice_option: 'required' | 'not_required' | 'undecided'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -863,6 +918,7 @@ export type Database = {
       catalog_taxonomies: {
         Row: {
           activated: boolean
+          code: string | null
           created_at: string
           deleted: boolean
           id: string
@@ -874,6 +930,7 @@ export type Database = {
         }
         Insert: {
           activated?: boolean
+          code?: string | null
           created_at?: string
           deleted?: boolean
           id?: string
@@ -885,6 +942,7 @@ export type Database = {
         }
         Update: {
           activated?: boolean
+          code?: string | null
           created_at?: string
           deleted?: boolean
           id?: string
@@ -1426,7 +1484,6 @@ export type Database = {
       products: {
         Row: {
           activated: boolean
-          category_id: string | null
           created_at: string
           deleted: boolean
           id: string
@@ -1434,12 +1491,12 @@ export type Database = {
           price: number
           service_id: string
           status: Database['public']['Enums']['product_status']
+          theme_id: string | null
           update_user_id: string | null
           updated_at: string
         }
         Insert: {
           activated?: boolean
-          category_id?: string | null
           created_at?: string
           deleted?: boolean
           id?: string
@@ -1447,12 +1504,12 @@ export type Database = {
           price: number
           service_id: string
           status?: Database['public']['Enums']['product_status']
+          theme_id?: string | null
           update_user_id?: string | null
           updated_at?: string
         }
         Update: {
           activated?: boolean
-          category_id?: string | null
           created_at?: string
           deleted?: boolean
           id?: string
@@ -1460,13 +1517,14 @@ export type Database = {
           price?: number
           service_id?: string
           status?: Database['public']['Enums']['product_status']
+          theme_id?: string | null
           update_user_id?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: 'products_category_id_fkey'
-            columns: ['category_id']
+            columns: ['theme_id']
             isOneToOne: false
             referencedRelation: 'catalog_taxonomies'
             referencedColumns: ['id']
@@ -1877,7 +1935,20 @@ export const Constants = {
         'receipt',
         'tax_invoice',
       ],
-      inquiry_status: ['submitted', 'quoted', 'converted', 'closed'],
+      inquiry_status: [
+        'submitted',
+        'reviewing',
+        'quoted',
+        'converted',
+        'closed',
+      ],
+      inquiry_type: [
+        'custom_performance',
+        'catalog_performance',
+        'estimate',
+        'partnership',
+        'other',
+      ],
       org_type: [
         'kindergarten',
         'school',
@@ -1886,6 +1957,8 @@ export const Constants = {
         'individual_business',
         'other',
       ],
+      payment_preference: ['split', 'full', 'postpaid', 'decide_after_consult'],
+      tax_invoice_option: ['required', 'not_required', 'undecided'],
     },
   },
   public: {
