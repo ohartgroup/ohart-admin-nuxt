@@ -23,7 +23,7 @@ const creating = ref(false)
 // 오작동 삭제 대비 — 켜면 deleted=true인 항목도 같이 불러와서 복구할 수 있게 한다.
 const showDeleted = ref(false)
 
-// 카테고리/장르 둘 다 한 테이블(catalog_taxonomies)에 type으로 담겨 있어서,
+// 테마/장르/공연구분 셋 다 한 테이블(catalog_taxonomies)에 type으로 담겨 있어서,
 // 화면에서는 activeType으로 필터링만 하고 실제 로드는 한 번에 전부 해온다(departments.vue와 동일 패턴).
 const filteredTaxonomies = computed(() => taxonomies.value.filter(t => t.type === activeType.value))
 
