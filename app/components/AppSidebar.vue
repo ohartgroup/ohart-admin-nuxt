@@ -61,6 +61,7 @@ const navItems = computed<NavigationMenuItem[][]>(() => {
       defaultOpen: true,
       children: [
         { label: '문의 관리', icon: 'i-lucide-message-square', to: '/artboda/inquiries' },
+        { label: '문의 선택값 관리', icon: 'i-lucide-list-checks', to: '/artboda/inquiry-options' },
         { label: '기관 관리', icon: 'i-lucide-building', to: '/artboda/organizations' },
         { label: '계약 관리', icon: 'i-lucide-file-signature', to: '/artboda/contracts' },
         { label: '증빙 발급 관리', icon: 'i-lucide-receipt', to: '/artboda/documents' },
