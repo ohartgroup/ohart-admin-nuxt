@@ -6,7 +6,7 @@ export interface PerformanceListItem {
   deleted: boolean
   name: string
   price: number
-  category_id: string | null
+  theme_id: string | null
   status: ProductStatus
   service_id: string
   audience_age: AudienceAgeRange[] | null

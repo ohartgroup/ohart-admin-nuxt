@@ -12,7 +12,7 @@ const statusColors: Record<ProductStatus, 'neutral' | 'success' | 'warning'> = {
 const services = ref<{ id: string, name: string }[]>([])
 const serviceName = (id: string) => services.value.find(s => s.id === id)?.name ?? id
 
-const categories = ref<{ id: string, label: string }[]>([])
+const themes = ref<{ id: string, label: string }[]>([])
 const genres = ref<{ id: string, label: string }[]>([])
 const performanceTypes = ref<{ id: string, label: string }[]>([])
 const performanceTypeName = (id: string | null) => performanceTypes.value.find(t => t.id === id)?.label ?? '-'
@@ -27,11 +27,11 @@ const loadServices = async () => {
   services.value = data ?? []
 }
 
-// 카테고리/장르/공연구분 선택지 — /catalog-taxonomies(super_admin 전용 관리화면)에서 관리되는 값을
+// 테마/장르/공연구분 선택지 — /catalog-taxonomies(super_admin 전용 관리화면)에서 관리되는 값을
 // public_read RLS로 그대로 읽어온다(서비스 목록과 동일한 패턴).
 const loadTaxonomies = async () => {
   const { data } = await supabase.from('catalog_taxonomies').select('id, type, label').eq('deleted', false).eq('activated', true).order('sort_order').order('label')
-  categories.value = (data ?? []).filter(t => t.type === 'category').map(t => ({ id: t.id, label: t.label }))
+  themes.value = (data ?? []).filter(t => t.type === 'theme').map(t => ({ id: t.id, label: t.label }))
   genres.value = (data ?? []).filter(t => t.type === 'genre').map(t => ({ id: t.id, label: t.label }))
   performanceTypes.value = (data ?? []).filter(t => t.type === 'performance_type').map(t => ({ id: t.id, label: t.label }))
 }
@@ -64,7 +64,7 @@ const creating = ref(false)
 
 const draftName = ref('')
 const draftPrice = ref<number>(0)
-const draftCategoryId = ref<string | undefined>(undefined)
+const draftThemeId = ref<string | undefined>(undefined)
 const draftServiceId = ref('')
 const draftExposedServiceIds = ref<string[]>([])
 const draftAudienceAge = ref<AudienceAgeRange[]>([])
@@ -78,7 +78,7 @@ const createFormRef = useTemplateRef('createFormRef')
 const startNewPerformance = () => {
   draftName.value = ''
   draftPrice.value = 0
-  draftCategoryId.value = undefined
+  draftThemeId.value = undefined
   draftServiceId.value = services.value[0]?.id ?? ''
   draftExposedServiceIds.value = draftServiceId.value ? [draftServiceId.value] : []
   draftAudienceAge.value = []
@@ -104,7 +104,7 @@ const submitNewPerformance = async () => {
       body: {
         name: draftName.value,
         price: draftPrice.value,
-        categoryId: draftCategoryId.value,
+        themeId: draftThemeId.value,
         serviceId: draftServiceId.value,
         exposedServiceIds: draftExposedServiceIds.value,
         audienceAge: draftAudienceAge.value,
@@ -135,7 +135,7 @@ const editingProductId = ref<string | null>(null)
 
 const editName = ref('')
 const editPrice = ref<number>(0)
-const editCategoryId = ref<string | undefined>(undefined)
+const editThemeId = ref<string | undefined>(undefined)
 const editStatus = ref<ProductStatus>('draft')
 const editServiceId = ref('')
 const editExposedServiceIds = ref<string[]>([])
@@ -151,7 +151,7 @@ const openEditForm = (row: PerformanceListItem) => {
   editingProductId.value = row.product_id
   editName.value = row.name
   editPrice.value = row.price
-  editCategoryId.value = row.category_id ?? undefined
+  editThemeId.value = row.theme_id ?? undefined
   editStatus.value = row.status
   editServiceId.value = row.service_id
   editExposedServiceIds.value = [...row.exposed_service_ids]
@@ -179,7 +179,7 @@ const submitEditPerformance = async () => {
       body: {
         name: editName.value,
         price: editPrice.value,
-        categoryId: editCategoryId.value,
+        themeId: editThemeId.value,
         status: editStatus.value,
         serviceId: editServiceId.value,
         exposedServiceIds: editExposedServiceIds.value,
@@ -332,7 +332,7 @@ const columns = [
           ref="createFormRef"
           v-model:name="draftName"
           v-model:price="draftPrice"
-          v-model:category-id="draftCategoryId"
+          v-model:theme-id="draftThemeId"
           v-model:service-id="draftServiceId"
           v-model:exposed-service-ids="draftExposedServiceIds"
           v-model:audience-age="draftAudienceAge"
@@ -342,7 +342,7 @@ const columns = [
           v-model:performance-type-id="draftPerformanceTypeId"
           v-model:images="draftImages"
           :services="services"
-          :categories="categories"
+          :themes="themes"
           :genres="genres"
           :performance-types="performanceTypes"
           :product-id="null"
@@ -381,7 +381,7 @@ const columns = [
           ref="editFormRef"
           v-model:name="editName"
           v-model:price="editPrice"
-          v-model:category-id="editCategoryId"
+          v-model:theme-id="editThemeId"
           v-model:service-id="editServiceId"
           v-model:exposed-service-ids="editExposedServiceIds"
           v-model:audience-age="editAudienceAge"
@@ -391,7 +391,7 @@ const columns = [
           v-model:performance-type-id="editPerformanceTypeId"
           v-model:images="editImages"
           :services="services"
-          :categories="categories"
+          :themes="themes"
           :genres="genres"
           :performance-types="performanceTypes"
           :product-id="editingProductId"
